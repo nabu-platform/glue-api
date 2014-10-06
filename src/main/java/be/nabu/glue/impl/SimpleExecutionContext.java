@@ -1,6 +1,7 @@
 package be.nabu.glue.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -9,11 +10,6 @@ import be.nabu.glue.api.ExecutionContext;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
-import be.nabu.libs.resources.ResourceReadableContainer;
-import be.nabu.libs.resources.api.ReadableResource;
-import be.nabu.libs.resources.api.Resource;
-import be.nabu.utils.io.api.ByteBuffer;
-import be.nabu.utils.io.api.ReadableContainer;
 
 public class SimpleExecutionContext implements ExecutionContext {
 
@@ -97,12 +93,12 @@ public class SimpleExecutionContext implements ExecutionContext {
 	}
 
 	@Override
-	public ReadableContainer<ByteBuffer> getContent(String name) throws IOException {
+	public InputStream getContent(String name) throws IOException {
 		ScriptRuntime runtime = ScriptRuntime.getRuntime();
 		while (runtime != null) {
-			Resource resource = runtime.getScript().getResources().getChild(name);
-			if (resource != null) {
-				return new ResourceReadableContainer((ReadableResource) resource);
+			InputStream input = runtime.getScript().getResource(name);
+			if (input != null) {
+				return input;
 			}
 			runtime = runtime.getParent();
 		}

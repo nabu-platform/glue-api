@@ -1,10 +1,8 @@
 package be.nabu.glue.api;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
-
-import be.nabu.utils.io.api.ByteBuffer;
-import be.nabu.utils.io.api.ReadableContainer;
 
 public interface ExecutionContext {
 	/**
@@ -39,5 +37,5 @@ public interface ExecutionContext {
 	 * This allows you to fetch content from the execution context
 	 * This is mostly to load resources 
 	 */
-	public ReadableContainer<ByteBuffer> getContent(String name) throws IOException;
+	public InputStream getContent(String name) throws IOException;
 }

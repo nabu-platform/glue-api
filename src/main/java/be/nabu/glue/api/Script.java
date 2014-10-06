@@ -1,10 +1,8 @@
 package be.nabu.glue.api;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
-
-import be.nabu.libs.resources.api.ReadableResource;
-import be.nabu.libs.resources.api.ResourceContainer;
 
 public interface Script {
 	/**
@@ -35,9 +33,9 @@ public interface Script {
 	/**
 	 * The source code of the script that was given to the parser
 	 */
-	public ReadableResource getSource() throws IOException;
+	public InputStream getSource() throws IOException;
 	/**
 	 * The container where resources belonging to this script would be in
 	 */
-	public ResourceContainer<?> getResources() throws IOException;
+	public InputStream getResource(String name) throws IOException;
 }
