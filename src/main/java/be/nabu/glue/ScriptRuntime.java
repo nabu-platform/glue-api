@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,12 @@ public class ScriptRuntime implements Runnable {
 				script.getRoot().execute(executionContext);
 			}
 			catch (ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			catch (ParseException e) {
 				throw new RuntimeException(e);
 			}
 		}

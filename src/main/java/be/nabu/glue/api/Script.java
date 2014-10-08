@@ -3,6 +3,7 @@ package be.nabu.glue.api;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 
 public interface Script {
 	/**
@@ -21,7 +22,7 @@ public interface Script {
 	/**
 	 * The root of the execution for the script
 	 */
-	public ExecutorGroup getRoot();
+	public ExecutorGroup getRoot() throws IOException, ParseException;
 	/**
 	 * The charset used to parse this script
 	 */
