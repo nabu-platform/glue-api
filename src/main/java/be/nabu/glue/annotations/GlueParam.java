@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.PARAMETER)
 public @interface GlueParam {
-	public String name();
-	public String description();
+	public String name() default "";
+	public String description() default "";
 }
