@@ -57,13 +57,13 @@ public class ScriptRuntime implements Runnable {
 				script.getRoot().execute(executionContext);
 			}
 			catch (ExecutionException e) {
-				throw new RuntimeException(e);
+				throw new ScriptRuntimeException(this, e);
 			}
 			catch (IOException e) {
-				throw new RuntimeException(e);
+				throw new ScriptRuntimeException(this, e);
 			}
 			catch (ParseException e) {
-				throw new RuntimeException(e);
+				throw new ScriptRuntimeException(this, e);
 			}
 		}
 		finally {
