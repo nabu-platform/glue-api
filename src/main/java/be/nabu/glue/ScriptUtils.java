@@ -3,7 +3,9 @@ package be.nabu.glue;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
@@ -13,18 +15,18 @@ import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
 	public static List<ParameterDescription> getInputs(Script script) throws ParseException, IOException {
-		List<ParameterDescription> inputs = new ArrayList<ParameterDescription>();
+		Map<String, ParameterDescription> inputs = new LinkedHashMap<String, ParameterDescription>();
 		for (Executor executor : script.getRoot().getChildren()) {
 			if (executor instanceof AssignmentExecutor) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null && !assignmentExecutor.isOverwriteIfExists()) {
-					if (!inputs.contains(assignmentExecutor.getVariableName())) {
-						inputs.add(new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null));
+					if (!inputs.containsKey(assignmentExecutor.getVariableName())) {
+						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null));
 					}
 				}
 			}
 		}
-		return inputs;
+		return new ArrayList<ParameterDescription>(inputs.values());
 	}
 	
 	public static String getFullName(Script script) {
