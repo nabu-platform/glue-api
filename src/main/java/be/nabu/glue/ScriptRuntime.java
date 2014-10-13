@@ -11,6 +11,7 @@ import java.util.Map;
 import be.nabu.glue.api.ExecutionContext;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.ExecutionException;
+import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.impl.SimpleExecutionContext;
@@ -31,6 +32,7 @@ public class ScriptRuntime implements Runnable {
 	private Map<String, Object> context;
 	private Converter converter = ConverterFactory.getInstance().getConverter();
 	private LabelEvaluator labelEvaluator;
+	private boolean forked = false;
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -38,23 +40,39 @@ public class ScriptRuntime implements Runnable {
 		this.debug = debug;
 		this.input = input;
 	}
+	
+	private ScriptRuntime(ScriptRuntime parent, Script script) {
+		this.parent = parent;
+		this.script = script;
+		this.environment = parent.environment;
+		this.debug = parent.debug;
+		this.executionContext = parent.getExecutionContext();
+		this.forked = true;
+	}
 
 	@Override
 	public void run() {
-		if (runtime.get() != null) {
+		if (!forked && runtime.get() != null) {
 			parent = runtime.get();
 		}
 		runtime.set(this);
 		try {
-			executionContext = new SimpleExecutionContext(environment, labelEvaluator, debug);
-			for (String key : input.keySet()) {
-				executionContext.getPipeline().put(key, input.get(key));
-			}
-			if (initialBreakpoint != null) {
-				executionContext.setBreakpoint(initialBreakpoint);
+			if (executionContext == null) {
+				executionContext = new SimpleExecutionContext(environment, labelEvaluator, debug);
+				for (String key : input.keySet()) {
+					executionContext.getPipeline().put(key, input.get(key));
+				}
+				if (initialBreakpoint != null) {
+					executionContext.setBreakpoint(initialBreakpoint);
+				}
 			}
 			try {
+				// preserve the current, mostly important for forking
+				Executor current = executionContext.getCurrent();
 				script.getRoot().execute(executionContext);
+				if (current != null) {
+					executionContext.setCurrent(current);
+				}
 			}
 			catch (ExecutionException e) {
 				throw new ScriptRuntimeException(this, e);
@@ -67,13 +85,17 @@ public class ScriptRuntime implements Runnable {
 			}
 		}
 		finally {
-			if (getParent() != null) {
+			if (!forked && getParent() != null) {
 				runtime.set(getParent());
 			}
 			else {
 				runtime.remove();
 			}
 		}
+	}
+	
+	public ScriptRuntime fork(Script script) {
+		return new ScriptRuntime(this, script);
 	}
 	
 	public ExecutionContext getExecutionContext() {

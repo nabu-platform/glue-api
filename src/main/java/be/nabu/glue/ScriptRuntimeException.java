@@ -18,7 +18,7 @@ public class ScriptRuntimeException extends RuntimeException {
 		builder.append("Error occurred in " + runtime.getScript().getName());
 		if (runtime.getExecutionContext().getCurrent() != null) {
 			Executor executor = runtime.getExecutionContext().getCurrent();
-			builder.append(" at line " + executor.getContext().getLineNumber() + ": " + executor.getContext().getLine());
+			builder.append(" at line " + (executor.getContext().getLineNumber() + 1) + ": " + executor.getContext().getLine());
 		}
 		return builder.toString();
 	}
