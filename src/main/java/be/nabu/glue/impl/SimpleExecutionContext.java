@@ -77,7 +77,7 @@ public class SimpleExecutionContext implements ExecutionContext {
 	@Override
 	public void setCurrent(Executor current) {
 		if (debug && current != null) {
-			ScriptRuntime.getRuntime().log("Line " + (current.getContext().getLineNumber() + 1) + ": " + current.getContext().getLine());
+			ScriptRuntime.getRuntime().log("[" + ScriptRuntime.getRuntime().getScript().getName() + "] Line " + (current.getContext().getLineNumber() + 1) + ": " + current.getContext().getLine());
 		}
 		this.current = current;
 	}

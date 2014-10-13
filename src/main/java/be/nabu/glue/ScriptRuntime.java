@@ -5,6 +5,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,11 +29,13 @@ public class ScriptRuntime implements Runnable {
 	private Writer writer;
 	private String initialBreakpoint;
 	private ScriptRuntime parent;
+	private ScriptRuntime child;
 	private static ThreadLocal<ScriptRuntime> runtime = new ThreadLocal<ScriptRuntime>();
 	private Map<String, Object> context;
 	private Converter converter = ConverterFactory.getInstance().getConverter();
 	private LabelEvaluator labelEvaluator;
 	private boolean forked = false;
+	private Date started, stopped;
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -54,11 +57,12 @@ public class ScriptRuntime implements Runnable {
 	public void run() {
 		if (!forked && runtime.get() != null) {
 			parent = runtime.get();
+			parent.child = this;
 		}
 		runtime.set(this);
 		try {
 			if (executionContext == null) {
-				executionContext = new SimpleExecutionContext(environment, labelEvaluator, debug);
+				executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
 				for (String key : input.keySet()) {
 					executionContext.getPipeline().put(key, input.get(key));
 				}
@@ -69,7 +73,9 @@ public class ScriptRuntime implements Runnable {
 			try {
 				// preserve the current, mostly important for forking
 				Executor current = executionContext.getCurrent();
+				started = new Date();
 				script.getRoot().execute(executionContext);
+				stopped = new Date();
 				if (current != null) {
 					executionContext.setCurrent(current);
 				}
@@ -86,6 +92,7 @@ public class ScriptRuntime implements Runnable {
 		}
 		finally {
 			if (!forked && getParent() != null) {
+				parent.child = null;
 				runtime.set(getParent());
 			}
 			else {
@@ -139,6 +146,10 @@ public class ScriptRuntime implements Runnable {
 	public ScriptRuntime getParent() {
 		return parent;
 	}
+	
+	public ScriptRuntime getChild() {
+		return child;
+	}
 
 	public Map<String, Object> getContext() {
 		if (parent != null) {
@@ -162,7 +173,7 @@ public class ScriptRuntime implements Runnable {
 		return converter;
 	}
 
-	public LabelEvaluator getLabelEvaluator() {
+	private LabelEvaluator getLabelEvaluator() {
 		return labelEvaluator == null && parent != null
 			? parent.getLabelEvaluator()
 			: labelEvaluator;
@@ -170,5 +181,9 @@ public class ScriptRuntime implements Runnable {
 
 	public void setLabelEvaluator(LabelEvaluator labelEvaluator) {
 		this.labelEvaluator = labelEvaluator;
+	}
+	
+	public long getDuration() {
+		return stopped != null ? stopped.getTime() - started.getTime() : 0;
 	}
 }
