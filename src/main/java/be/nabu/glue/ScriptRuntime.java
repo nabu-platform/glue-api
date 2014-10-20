@@ -80,6 +80,9 @@ public class ScriptRuntime implements Runnable {
 					executionContext.setCurrent(current);
 				}
 			}
+			catch (ScriptRuntimeException e) {
+				throw e;
+			}
 			catch (ExecutionException e) {
 				throw new ScriptRuntimeException(this, e);
 			}
@@ -87,6 +90,9 @@ public class ScriptRuntime implements Runnable {
 				throw new ScriptRuntimeException(this, e);
 			}
 			catch (ParseException e) {
+				throw new ScriptRuntimeException(this, e);
+			}
+			catch (RuntimeException e) {
 				throw new ScriptRuntimeException(this, e);
 			}
 		}

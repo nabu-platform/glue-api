@@ -44,6 +44,15 @@ public class MultipleRepository implements ScriptRepository {
 
 	@Override
 	public Script getScript(String name) throws IOException, ParseException {
+		if (!getScripts().containsKey(name)) {
+			for (ScriptRepository repository : repositories) {
+				Script script = repository.getScript(name);
+				if (script != null) {
+					scripts.put(name, script);
+					break;
+				}
+			}
+		}
 		return getScripts().get(name);
 	}
 
