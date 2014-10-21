@@ -48,7 +48,12 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 	private static Properties getProperties() throws IOException {
 		if (properties == null) {
 			properties = new Properties();
-			File file = new File(System.getProperty("user.home"), ".glue");
+			// first check the current directory where glue is running
+			File file = new File(System.getProperty("user.dir"), ".glue");
+			// if it does not exist, check the home folder
+			if (!file.exists()) {
+				file = new File(System.getProperty("user.home"), ".glue");
+			}
 			if (file.exists()) {
 				FileInputStream input = new FileInputStream(file);
 				try {
