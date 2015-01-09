@@ -19,8 +19,9 @@ public class MultipleRepository implements ScriptRepository {
 	private Map<String, Script> scripts;
 	private ScriptRepository parent;
 	
-	public MultipleRepository(ScriptRepository parent) {
+	public MultipleRepository(ScriptRepository parent, ScriptRepository...children) {
 		this.parent = parent;
+		add(children);
 	}
 	
 	@Override

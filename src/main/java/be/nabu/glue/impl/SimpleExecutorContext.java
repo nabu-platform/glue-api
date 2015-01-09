@@ -44,4 +44,12 @@ public class SimpleExecutorContext implements ExecutorContext {
 	public Map<String, String> getAnnotations() {
 		return annotations;
 	}
+
+	public void setLabel(String label) {
+		this.label = label;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
 }
