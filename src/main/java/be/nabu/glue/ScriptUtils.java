@@ -21,7 +21,11 @@ public class ScriptUtils {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null && !assignmentExecutor.isOverwriteIfExists()) {
 					if (!inputs.containsKey(assignmentExecutor.getVariableName())) {
-						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null));
+						Object [] enumerations = null;
+						if (assignmentExecutor.getContext().getAnnotations() != null && assignmentExecutor.getContext().getAnnotations().containsKey("enumeration")) {
+							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
+						}
+						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null, enumerations == null ? new String[0] : enumerations));
 					}
 				}
 			}
