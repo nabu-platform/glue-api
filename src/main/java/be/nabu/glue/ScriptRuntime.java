@@ -5,14 +5,18 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import be.nabu.glue.api.ExecutionContext;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.ExecutionException;
 import be.nabu.glue.api.Executor;
+import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.impl.SimpleExecutionContext;
@@ -21,13 +25,13 @@ import be.nabu.libs.converter.api.Converter;
 
 public class ScriptRuntime implements Runnable {
 	
-	private boolean debug;
+	private boolean debug, trace;
 	private ExecutionEnvironment environment;
 	private ExecutionContext executionContext;
 	private Script script;
 	private Map<String, Object> input;
 	private Writer writer;
-	private String initialBreakpoint;
+	private Set<String> breakpoints = new HashSet<String>();
 	private ScriptRuntime parent;
 	private ScriptRuntime child;
 	private static ThreadLocal<ScriptRuntime> runtime = new ThreadLocal<ScriptRuntime>();
@@ -66,16 +70,20 @@ public class ScriptRuntime implements Runnable {
 				for (String key : input.keySet()) {
 					executionContext.getPipeline().put(key, input.get(key));
 				}
-				if (initialBreakpoint != null) {
-					executionContext.setBreakpoint(initialBreakpoint);
-				}
 			}
 			try {
+				if (trace) {
+					scanForBreakpoints(script.getRoot());
+					executionContext.addBreakpoint(breakpoints.toArray(new String[breakpoints.size()]));
+				}
 				// preserve the current, mostly important for forking
 				Executor current = executionContext.getCurrent();
+				// make sure we detect breakpoints if we are tracing
+				executionContext.setTrace(trace);
 				started = new Date();
 				script.getRoot().execute(executionContext);
 				stopped = new Date();
+				trace = executionContext.isTrace();
 				if (current != null) {
 					executionContext.setCurrent(current);
 				}
@@ -107,6 +115,17 @@ public class ScriptRuntime implements Runnable {
 		}
 	}
 	
+	private void scanForBreakpoints(ExecutorGroup root) {
+		for (Executor child : root.getChildren()) {
+			if (child.getContext().getAnnotations().containsKey("breakpoint")) {
+				breakpoints.add(child.getId());
+			}
+			if (child instanceof ExecutorGroup) {
+				scanForBreakpoints((ExecutorGroup) child);
+			}
+		}
+	}
+
 	public ScriptRuntime fork(Script script) {
 		return new ScriptRuntime(this, script);
 	}
@@ -167,14 +186,22 @@ public class ScriptRuntime implements Runnable {
 		return context;
 	}
 
-	public String getInitialBreakpoint() {
-		return initialBreakpoint;
+	public Set<String> getBreakpoints() {
+		return breakpoints;
+	}
+	
+	public void addBreakpoint(String...breakpoints) {
+		this.breakpoints.addAll(Arrays.asList(breakpoints));
 	}
 
-	public void setInitialBreakpoint(String initialBreakpoint) {
-		this.initialBreakpoint = initialBreakpoint;
+	public void removeBreakpoint(String breakpoint) {
+		this.breakpoints.remove(breakpoint);
 	}
-
+	
+	public void removeBreakpoints() {
+		this.breakpoints.clear();
+	}
+	
 	public Converter getConverter() {
 		return converter;
 	}
@@ -191,5 +218,13 @@ public class ScriptRuntime implements Runnable {
 	
 	public long getDuration() {
 		return stopped != null ? stopped.getTime() - started.getTime() : 0;
+	}
+
+	public boolean isTrace() {
+		return trace;
+	}
+
+	public void setTrace(boolean trace) {
+		this.trace = trace;
 	}
 }

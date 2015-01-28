@@ -2,8 +2,11 @@ package be.nabu.glue.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.ExecutionContext;
@@ -15,9 +18,9 @@ public class SimpleExecutionContext implements ExecutionContext {
 
 	private Map<String, Object> contextVariables = new LinkedHashMap<String, Object>();
 	private ExecutionEnvironment executionEnvironment;
-	private boolean debug;
+	private boolean debug, trace;
 	private Executor current;
-	private String breakpoint;
+	private Set<String> breakpoints = new HashSet<String>();
 	private LabelEvaluator labelEvaluator;
 
 	public SimpleExecutionContext(ExecutionEnvironment executionEnvironment, LabelEvaluator labelEvaluator, boolean debug) {
@@ -83,13 +86,13 @@ public class SimpleExecutionContext implements ExecutionContext {
 	}
 
 	@Override
-	public String getBreakpoint() {
-		return breakpoint;
+	public Set<String> getBreakpoints() {
+		return breakpoints;
 	}
 
 	@Override
-	public void setBreakpoint(String breakpoint) {
-		this.breakpoint = breakpoint;
+	public void addBreakpoint(String...breakpoint) {
+		this.breakpoints.addAll(Arrays.asList(breakpoint));
 	}
 
 	@Override
@@ -113,5 +116,24 @@ public class SimpleExecutionContext implements ExecutionContext {
 	@Override
 	public Map<String, Object> getPipeline() {
 		return contextVariables;
+	}
+
+	@Override
+	public void removeBreakpoint(String id) {
+		breakpoints.remove(id);
+	}
+
+	@Override
+	public boolean isTrace() {
+		return trace;
+	}
+
+	public void setTrace(boolean trace) {
+		this.trace = trace;
+	}
+
+	@Override
+	public void removeBreakpoints() {
+		breakpoints.clear();
 	}
 }
