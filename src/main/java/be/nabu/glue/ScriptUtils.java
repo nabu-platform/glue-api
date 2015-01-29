@@ -9,11 +9,13 @@ import java.util.Map;
 
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
+import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.ParameterDescription;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
+	
 	public static List<ParameterDescription> getInputs(Script script) throws ParseException, IOException {
 		Map<String, ParameterDescription> inputs = new LinkedHashMap<String, ParameterDescription>();
 		for (Executor executor : script.getRoot().getChildren()) {
@@ -31,6 +33,26 @@ public class ScriptUtils {
 			}
 		}
 		return new ArrayList<ParameterDescription>(inputs.values());
+	}
+	
+	public static List<ParameterDescription> getOutputs(Script script) throws ParseException, IOException {
+		return new ArrayList<ParameterDescription>(getOutputs(script.getRoot()).values());
+	}
+	
+	private static Map<String, ParameterDescription> getOutputs(ExecutorGroup group) {
+		Map<String, ParameterDescription> outputs = new LinkedHashMap<String, ParameterDescription>();
+		for (Executor executor : group.getChildren()) {
+			if (executor instanceof AssignmentExecutor) {
+				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
+				if (assignmentExecutor.getVariableName() != null) {
+					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null));
+				}
+			}
+			if (executor instanceof ExecutorGroup) {
+				outputs.putAll(getOutputs((ExecutorGroup) executor));
+			}
+		}
+		return outputs;
 	}
 	
 	public static String getFullName(Script script) {
