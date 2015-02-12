@@ -8,11 +8,12 @@ import be.nabu.glue.api.ParameterDescription;
 public class SimpleMethodDescription implements MethodDescription {
 
 	private String description;
-	private String name;
+	private String name, namespace;
 	private List<ParameterDescription> parameters;
 	private List<ParameterDescription> returnValues;
 
-	public SimpleMethodDescription(String name, String description, List<ParameterDescription> parameters, List<ParameterDescription> returnValues) {
+	public SimpleMethodDescription(String namespace, String name, String description, List<ParameterDescription> parameters, List<ParameterDescription> returnValues) {
+		this.namespace = namespace;
 		this.name = name;
 		this.description = description;
 		this.parameters = parameters;
@@ -37,5 +38,10 @@ public class SimpleMethodDescription implements MethodDescription {
 	@Override
 	public List<ParameterDescription> getReturnValues() {
 		return returnValues;
+	}
+
+	@Override
+	public String getNamespace() {
+		return namespace;
 	}
 }

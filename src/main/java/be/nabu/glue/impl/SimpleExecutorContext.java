@@ -11,11 +11,13 @@ public class SimpleExecutorContext implements ExecutorContext {
 	private String label, comment;
 	private String line;
 	private Map<String, String> annotations = new HashMap<String, String>();
+	private String description;
 	
-	public SimpleExecutorContext(int lineNumber, String label, String comment, String line, Map<String, String> annotations) {
+	public SimpleExecutorContext(int lineNumber, String label, String comment, String description, String line, Map<String, String> annotations) {
 		this.lineNumber = lineNumber;
 		this.label = label;
 		this.comment = comment;
+		this.description = description;
 		this.line = line;
 		this.annotations.putAll(annotations);
 	}
@@ -51,5 +53,14 @@ public class SimpleExecutorContext implements ExecutorContext {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

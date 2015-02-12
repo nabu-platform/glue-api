@@ -2,7 +2,6 @@ package be.nabu.glue;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Arrays;
@@ -18,8 +17,10 @@ import be.nabu.glue.api.ExecutionException;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
+import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.impl.SimpleExecutionContext;
+import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.libs.converter.ConverterFactory;
 import be.nabu.libs.converter.api.Converter;
 
@@ -30,7 +31,6 @@ public class ScriptRuntime implements Runnable {
 	private ExecutionContext executionContext;
 	private Script script;
 	private Map<String, Object> input;
-	private Writer writer;
 	private Set<String> breakpoints = new HashSet<String>();
 	private ScriptRuntime parent;
 	private ScriptRuntime child;
@@ -40,6 +40,8 @@ public class ScriptRuntime implements Runnable {
 	private LabelEvaluator labelEvaluator;
 	private boolean forked = false;
 	private Date started, stopped;
+	private Exception exception;
+	private OutputFormatter formatter;
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -64,6 +66,7 @@ public class ScriptRuntime implements Runnable {
 			parent.child = this;
 		}
 		runtime.set(this);
+		getFormatter().start(script);
 		try {
 			if (executionContext == null) {
 				executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
@@ -89,22 +92,28 @@ public class ScriptRuntime implements Runnable {
 				}
 			}
 			catch (ScriptRuntimeException e) {
+				exception = e;
 				throw e;
 			}
 			catch (ExecutionException e) {
+				exception = e;
 				throw new ScriptRuntimeException(this, e);
 			}
 			catch (IOException e) {
+				exception = e;
 				throw new ScriptRuntimeException(this, e);
 			}
 			catch (ParseException e) {
+				exception = e;
 				throw new ScriptRuntimeException(this, e);
 			}
 			catch (RuntimeException e) {
+				exception = e;
 				throw new ScriptRuntimeException(this, e);
 			}
 		}
 		finally {
+			getFormatter().end(script, started, stopped, exception);
 			if (!forked && getParent() != null) {
 				parent.child = null;
 				runtime.set(getParent());
@@ -134,40 +143,30 @@ public class ScriptRuntime implements Runnable {
 		return executionContext;
 	}
 	
-	public Writer getWriter() {
-		if (writer == null) {
+	public void setFormatter(OutputFormatter formatter) {
+		this.formatter = formatter;
+	}
+	
+	public OutputFormatter getFormatter() {
+		if (formatter == null) {
 			if (parent != null) {
-				writer = parent.getWriter();
+				formatter = parent.getFormatter();
 			}
 			else {
-				writer = new OutputStreamWriter(System.out, Charset.forName("UTF-8"));
+				formatter = new SimpleOutputFormatter(new OutputStreamWriter(System.out, Charset.forName("UTF-8")));
 			}
 		}
-		return writer;
+		return formatter;
 	}
 	
 	public Script getScript() {
 		return script;
-	}
-
-	public void setWriter(Writer writer) {
-		this.writer = writer;
 	}
 	
 	public static ScriptRuntime getRuntime() {
 		return runtime.get();
 	}
 	
-	public void log(String message) {
-		try {
-			getWriter().append(message).append(System.getProperty("line.separator"));
-			getWriter().flush();
-		}
-		catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
 	public ScriptRuntime getParent() {
 		return parent;
 	}
@@ -216,6 +215,10 @@ public class ScriptRuntime implements Runnable {
 		this.labelEvaluator = labelEvaluator;
 	}
 	
+	public boolean hasRun() {
+		return started != null;
+	}
+	
 	public long getDuration() {
 		return stopped != null ? stopped.getTime() - started.getTime() : 0;
 	}
@@ -223,8 +226,20 @@ public class ScriptRuntime implements Runnable {
 	public boolean isTrace() {
 		return trace;
 	}
+	
+	public Date getStarted() {
+		return started;
+	}
+
+	public Date getStopped() {
+		return stopped;
+	}
 
 	public void setTrace(boolean trace) {
 		this.trace = trace;
+	}
+
+	public Exception getException() {
+		return exception;
 	}
 }
