@@ -1,6 +1,8 @@
 package be.nabu.glue.impl.formatters;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.text.ParseException;
 import java.util.Date;
@@ -113,5 +115,12 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	@Override
 	public void end(Script script, Date started, Date stopped, Exception exception) {
 		scriptDepth--;
+		if (exception != null) {
+			StringWriter output = new StringWriter();
+			PrintWriter writer = new PrintWriter(output);
+			exception.printStackTrace(writer);
+			writer.flush();
+			print(output.toString());
+		}
 	}
 }
