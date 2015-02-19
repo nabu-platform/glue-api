@@ -44,10 +44,10 @@ public class FormattedDashboard {
 			entry.setStopped(result.getStopped());
 			entry.setEnvironment(result.getEnvironment().getName());
 			entries.add(entry);
-			if (started == null || result.getStarted().before(started)) {
+			if (started == null || (result.getStarted() != null && result.getStarted().before(started))) {
 				started = result.getStarted();
 			}
-			if (stopped == null || result.getStopped().after(stopped)) {
+			if (stopped == null || (result.getStopped() != null && result.getStopped().after(stopped))) {
 				stopped = result.getStopped();
 			}
 		}
