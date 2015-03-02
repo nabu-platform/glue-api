@@ -14,19 +14,21 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.ScriptResult;
+import be.nabu.glue.api.runs.ScriptResultInterpretation;
 import be.nabu.glue.api.runs.Validation;
 import be.nabu.glue.api.runs.Validation.Level;
 
 @XmlRootElement(name = "result")
-@XmlType(propOrder = { "level", "namespace", "name", "environment", "started", "stopped", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
+@XmlType(propOrder = { "level", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
 public class FormattedScriptResult {
 	private List<FormattedValidation> validations;
 	private Level level;
 	private String name, namespace, exception, log, environment;
 	private Date started, stopped;
 	private int amountValidations, amountSuccessful, amountError, amountCritical;
+	private Double actualVariance, allowedVariance;
 	
-	public static FormattedScriptResult format(ScriptResult result) {
+	public static FormattedScriptResult format(ScriptResult result, ScriptResultInterpretation interpretation) {
 		FormattedScriptResult formatted = new FormattedScriptResult();
 		formatted.setLevel(result.getResultLevel());
 		formatted.setNamespace(result.getScript().getNamespace());
@@ -57,6 +59,10 @@ public class FormattedScriptResult {
 			formatted.setException(output.toString());
 		}
 		formatted.setLog(result.getLog());
+		if (interpretation != null) {
+			formatted.setActualVariance(interpretation.getActualVariance());
+			formatted.setAllowedVariance(interpretation.getAllowedVariance());
+		}
 		return formatted;
 	}
 	
@@ -147,5 +153,21 @@ public class FormattedScriptResult {
 	public void marshal(OutputStream output) throws JAXBException {
 		JAXBContext context = JAXBContext.newInstance(FormattedScriptResult.class);
 		context.createMarshaller().marshal(this, output);
+	}
+
+	public Double getActualVariance() {
+		return actualVariance;
+	}
+
+	public void setActualVariance(Double actualVariance) {
+		this.actualVariance = actualVariance;
+	}
+
+	public Double getAllowedVariance() {
+		return allowedVariance;
+	}
+
+	public void setAllowedVariance(Double allowedVariance) {
+		this.allowedVariance = allowedVariance;
 	}
 }

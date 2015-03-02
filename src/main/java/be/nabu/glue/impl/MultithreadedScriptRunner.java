@@ -34,7 +34,7 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		for (Script script : repository) {
 			if (filter.accept(script)) {
 				ScriptRuntime runtime = new ScriptRuntime(script, environment, false, new HashMap<String, Object>());
-				runtime.setFormatter(new MarkdownOutputFormatter(new StringWriter()));
+				runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(new StringWriter())));
 				runtime.setLabelEvaluator(labelEvaluator);
 				runtimes.add(runtime);
 				threadPool.execute(runtime);
@@ -50,7 +50,7 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		List<ScriptResult> results = new ArrayList<ScriptResult>();
 		for (ScriptRuntime runtime : runtimes) {
 			List<Validation> validations  = (List<Validation>) runtime.getContext().get("$validation");
-			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((StringWriter) ((MarkdownOutputFormatter) runtime.getFormatter()).getWriter()).toString(), validations == null ? new ArrayList<Validation>() : validations));
+			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((StringWriter) ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter()).toString(), validations == null ? new ArrayList<Validation>() : validations));
 		}
 		return results;
 	}

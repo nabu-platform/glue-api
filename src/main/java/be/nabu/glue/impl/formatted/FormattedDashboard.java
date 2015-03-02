@@ -12,6 +12,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.ScriptResult;
+import be.nabu.glue.api.runs.ScriptResultInterpretation;
+import be.nabu.glue.api.runs.ScriptResultInterpreter;
 import be.nabu.glue.api.runs.Validation.Level;
 
 @XmlRootElement(name = "dashboard")
@@ -22,7 +24,7 @@ public class FormattedDashboard {
 	private List<FormattedDashboardEntry> results;
 	private Date started, stopped;
 	
-	public static FormattedDashboard format(ScriptResult...results) {
+	public static FormattedDashboard format(ScriptResultInterpreter interpreter, ScriptResult...results) {
 		FormattedDashboard dashboard = new FormattedDashboard();
 		List<FormattedDashboardEntry> entries = new ArrayList<FormattedDashboardEntry>();
 		int amountSuccessful = 0,
@@ -43,6 +45,11 @@ public class FormattedDashboard {
 			entry.setStarted(result.getStarted());
 			entry.setStopped(result.getStopped());
 			entry.setEnvironment(result.getEnvironment().getName());
+			ScriptResultInterpretation interpretation = interpreter.interpret(result);
+			if (interpretation != null) {
+				entry.setActualVariance(interpretation.getActualVariance());
+				entry.setAllowedVariance(interpretation.getAllowedVariance());
+			}
 			entries.add(entry);
 			if (started == null || (result.getStarted() != null && result.getStarted().before(started))) {
 				started = result.getStarted();
@@ -104,10 +111,12 @@ public class FormattedDashboard {
 		this.stopped = stopped;
 	}
 
+	@XmlType(propOrder = { "namespace", "name", "environment", "level", "started", "stopped", "actualVariance", "allowedVariance" })
 	public static class FormattedDashboardEntry {
 		private String namespace, name, environment;
 		private Level level;
 		private Date started, stopped;
+		private Double actualVariance, allowedVariance;
 		public String getNamespace() {
 			return namespace;
 		}
@@ -143,6 +152,18 @@ public class FormattedDashboard {
 		}
 		public void setEnvironment(String environment) {
 			this.environment = environment;
+		}
+		public Double getActualVariance() {
+			return actualVariance;
+		}
+		public void setActualVariance(Double actualVariance) {
+			this.actualVariance = actualVariance;
+		}
+		public Double getAllowedVariance() {
+			return allowedVariance;
+		}
+		public void setAllowedVariance(Double allowedVariance) {
+			this.allowedVariance = allowedVariance;
 		}
 	}
 	

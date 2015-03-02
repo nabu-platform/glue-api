@@ -10,7 +10,7 @@ public class TestCaseFilter implements ScriptFilter {
 	@Override
 	public boolean accept(Script script) {
 		try {
-			if (script.getRoot() != null && script.getRoot().getContext().getAnnotations().containsKey("testcase")) {
+			if (script.getRoot() != null && script.getRoot().getContext() != null && script.getRoot().getContext().getAnnotations().containsKey("testcase")) {
 				String string = script.getRoot().getContext().getAnnotations().get("testcase");
 				return string == null || string.equalsIgnoreCase("true");
 			}

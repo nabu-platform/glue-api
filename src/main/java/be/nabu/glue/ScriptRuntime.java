@@ -70,8 +70,10 @@ public class ScriptRuntime implements Runnable {
 		try {
 			if (executionContext == null) {
 				executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
-				for (String key : input.keySet()) {
-					executionContext.getPipeline().put(key, input.get(key));
+				if (input != null) {
+					for (String key : input.keySet()) {
+						executionContext.getPipeline().put(key, input.get(key));
+					}
 				}
 			}
 			try {
