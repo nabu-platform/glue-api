@@ -1,12 +1,18 @@
 package be.nabu.glue.impl;
 
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 
 import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.ExecutionEnvironment;
@@ -22,8 +28,16 @@ import be.nabu.glue.impl.formatters.MarkdownOutputFormatter;
 public class MultithreadedScriptRunner implements ScriptRunner {
 
 	private ExecutorService threadPool;
+	private boolean debug;
+	private long maxScriptRuntime;
 
-	public MultithreadedScriptRunner(int poolSize) {
+	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime) {
+		this(poolSize, maxScriptRuntime, false);
+	}
+	
+	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime, boolean debug) {
+		this.maxScriptRuntime = maxScriptRuntime;
+		this.debug = debug;
 		this.threadPool = Executors.newFixedThreadPool(poolSize);
 	}
 
@@ -31,27 +45,69 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 	@Override
 	public List<ScriptResult> run(ExecutionEnvironment environment, ScriptRepository repository, ScriptFilter filter, LabelEvaluator labelEvaluator) {
 		List<ScriptRuntime> runtimes = new ArrayList<ScriptRuntime>();
+		Map<Future<?>, ScriptRuntime> futures = new LinkedHashMap<Future<?>, ScriptRuntime>();
+		System.out.println("Finding scripts for execution...");
 		for (Script script : repository) {
+			System.out.print("\t" + script.getName() + " (" + script.getNamespace() + ")...");
 			if (filter.accept(script)) {
-				ScriptRuntime runtime = new ScriptRuntime(script, environment, false, new HashMap<String, Object>());
-				runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(new StringWriter())));
+				ScriptRuntime runtime = new ScriptRuntime(script, environment, debug, new HashMap<String, Object>());
+				runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(debug ? new MultipleWriter(new OutputStreamWriter(System.out)) : new StringWriter())));
 				runtime.setLabelEvaluator(labelEvaluator);
 				runtimes.add(runtime);
-				threadPool.execute(runtime);
+				System.out.println("accepted");
+			}
+			else {
+				System.out.println("rejected");
 			}
 		}
-		threadPool.shutdown();
-		try {
-			threadPool.awaitTermination(24, TimeUnit.HOURS);
+		System.out.println("Submitting " + runtimes.size() + " scripts");
+		for (ScriptRuntime runtime : runtimes) {
+			try {
+				futures.put(threadPool.submit(runtime), runtime);
+			}
+			catch (RejectedExecutionException e) {
+				System.out.println("Forced stop submitting due to rejected exception: " + e.getMessage());
+				e.printStackTrace();
+				break;
+			}
 		}
-		catch (InterruptedException e) {
-			throw new RuntimeException(e);
+		// don't accept anymore incoming tasks
+		threadPool.shutdown();
+		while(!Thread.interrupted() && !futures.isEmpty()) {
+			Iterator<Future<?>> iterator = futures.keySet().iterator();
+			while(iterator.hasNext()) {
+				Future<?> future = iterator.next();
+				if (future.isDone() || future.isCancelled()) {
+					iterator.remove();
+				}
+				else {
+					ScriptRuntime scriptRuntime = futures.get(future);
+					if (scriptRuntime.getStarted() != null) {
+						long runtime = new Date().getTime() - scriptRuntime.getStarted().getTime();
+						if (runtime > maxScriptRuntime) {
+							synchronized(System.out) {
+								System.out.println("Cancelling: " + scriptRuntime.getScript().getName() + " (" + scriptRuntime.getScript().getNamespace() + ") because it is running too long: " + runtime + " > " + maxScriptRuntime);
+							}
+							future.cancel(true);
+						}
+					}
+				}
+			}
+		}
+		if (!futures.isEmpty()) {
+			synchronized(System.out) {
+				System.out.println("Preemptive stop of the runner due to thread interrupt, " + futures.size() + " scripts unfinished");
+			}
 		}
 		List<ScriptResult> results = new ArrayList<ScriptResult>();
 		for (ScriptRuntime runtime : runtimes) {
 			List<Validation> validations  = (List<Validation>) runtime.getContext().get("$validation");
-			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((StringWriter) ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter()).toString(), validations == null ? new ArrayList<Validation>() : validations));
+			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString(), validations == null ? new ArrayList<Validation>() : validations));
 		}
 		return results;
+	}
+
+	public boolean isDebug() {
+		return debug;
 	}
 }

@@ -12,6 +12,7 @@ import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.Validation;
+import be.nabu.glue.api.runs.Validation.Level;
 
 public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	
@@ -19,6 +20,7 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	private Script root;
 	private int scriptDepth = 0;
 	private boolean inValidation = false, inBlock = false;
+	private String validationGroup;
 	
 	public MarkdownOutputFormatter(Writer writer) {
 		super(writer);
@@ -85,7 +87,27 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 		}
 		inValidation = true;
 		for (Validation validation : validations) {
-			super.print("- " + validation);
+			boolean grouped = false;
+			String validationGroup = validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null 
+				? validation.getExecutor().getContext().getAnnotations().get("group")
+				: null;
+			if (validationGroup != null) {
+				grouped = true;
+				// a new group, print the name
+				if (!validationGroup.equals(this.validationGroup)) {
+					super.print("- " + validationGroup);
+					this.validationGroup = validationGroup;
+				}
+			}
+			else if (this.validationGroup != null) {
+				this.validationGroup = null;
+			}
+			if (validation.getLevel() == Level.ERROR || validation.getLevel() == Level.CRITICAL) {
+				super.print((grouped ? "\t" : "") + "- !!" + validation + "!!");
+			}
+			else {
+				super.print((grouped ? "\t" : "") + "- " + validation);
+			}
 		}
 	}
 	

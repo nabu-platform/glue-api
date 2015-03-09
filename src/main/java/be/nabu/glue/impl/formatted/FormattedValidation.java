@@ -12,11 +12,11 @@ import be.nabu.glue.api.runs.Validation;
 import be.nabu.glue.api.runs.Validation.Level;
 
 @XmlRootElement(name = "validation")
-@XmlType(propOrder = { "level", "timestamp", "validation", "message", "lineNumber", "line", "callStack" })
+@XmlType(propOrder = { "level", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack" })
 public class FormattedValidation {
 	
 	private Level level;
-	private String validation, message, line;
+	private String validation, message, line, group;
 	private int lineNumber;
 	private List<String> callStack;
 	private Date timestamp;
@@ -30,6 +30,7 @@ public class FormattedValidation {
 		for (Script script : validation.getCallStack()) {
 			callStack.add("[" + script.getNamespace() + "] " + script.getName());
 		}
+		formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
 		formatted.setCallStack(callStack);
 		formatted.setLine(validation.getExecutor().getContext().getLine());
 		formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
@@ -91,5 +92,13 @@ public class FormattedValidation {
 
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
 	}
 }

@@ -24,5 +24,9 @@ public class TestCaseFilter implements ScriptFilter {
 			e.printStackTrace(System.err);
 			return false;
 		}
+		catch (RuntimeException e) {
+			e.printStackTrace(System.err);
+			return false;
+		}
 	}
 }

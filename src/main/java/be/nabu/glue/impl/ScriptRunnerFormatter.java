@@ -10,9 +10,6 @@ import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.Validation;
 import be.nabu.glue.api.runs.Validation.Level;
 
-/**
- * IMPORTANT: this formatter does not support multithreaded execution, this is a known current limitation 
- */
 public class ScriptRunnerFormatter implements OutputFormatter {
 
 	private OutputFormatter parent;
@@ -27,7 +24,9 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 	public void start(Script script) {
 		if (root == null) {
 			root = script;
-			System.out.print("Running: " + script.getName() + " (" + script.getNamespace() + ")...");
+			synchronized(System.out) {
+				System.out.println("Starting: " + script.getName() + " (" + script.getNamespace() + ")");
+			}
 		}
 		parent.start(script);
 	}
@@ -60,20 +59,23 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 	@Override
 	public void end(Script script, Date started, Date stopped, Exception exception) {
 		if (root != null && root.equals(script)) {
-			if (stopped == null) {
-				if (exception == null) {
-					System.out.println("UNKNOWN ERROR");
+			synchronized(System.out) {
+				System.out.print("Finished: " + script.getName() + " (" + script.getNamespace() + ") - ");
+				if (stopped == null) {
+					if (exception == null) {
+						System.out.println("UNKNOWN ERROR");
+					}
+					else {
+						System.out.println("ERROR: " + exception.getMessage());
+					}
 				}
 				else {
-					System.out.println("ERROR: " + exception.getMessage());
+					long duration = stopped.getTime() - started.getTime();
+					System.out.println(duration + "ms");
 				}
-			}
-			else {
-				long duration = stopped.getTime() - started.getTime();
-				System.out.println(duration + "ms");
-			}
-			for (Validation error : errors) {
-				System.out.println("- " + error);
+				for (Validation error : errors) {
+					System.out.println("- " + error);
+				}
 			}
 		}
 		parent.end(script, started, stopped, exception);

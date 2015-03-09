@@ -61,8 +61,8 @@ public class ScriptRuntime implements Runnable {
 
 	@Override
 	public void run() {
-		if (!forked && runtime.get() != null) {
-			parent = runtime.get();
+		parent = runtime.get();
+		if (!forked && parent != null) {
 			parent.child = this;
 		}
 		runtime.set(this);
@@ -116,8 +116,10 @@ public class ScriptRuntime implements Runnable {
 		}
 		finally {
 			getFormatter().end(script, started, stopped, exception);
-			if (!forked && getParent() != null) {
-				parent.child = null;
+			if (getParent() != null) {
+				if (!forked) {
+					parent.child = null;
+				}
 				runtime.set(getParent());
 			}
 			else {
