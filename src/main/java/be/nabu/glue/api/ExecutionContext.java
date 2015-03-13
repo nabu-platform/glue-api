@@ -50,4 +50,9 @@ public interface ExecutionContext {
 	 * Can toggle trace
 	 */
 	public void setTrace(boolean trace);
+	/**
+	 * The break count allows you to break out of executors
+	 */
+	public int getBreakCount();
+	public void incrementBreakCount(int breakCount);
 }

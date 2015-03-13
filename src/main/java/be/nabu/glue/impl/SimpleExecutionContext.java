@@ -22,6 +22,7 @@ public class SimpleExecutionContext implements ExecutionContext {
 	private Executor current;
 	private Set<String> breakpoints = new HashSet<String>();
 	private LabelEvaluator labelEvaluator;
+	private int breakCount;
 
 	public SimpleExecutionContext(ExecutionEnvironment executionEnvironment, LabelEvaluator labelEvaluator, boolean debug) {
 		this.executionEnvironment = executionEnvironment;
@@ -135,5 +136,15 @@ public class SimpleExecutionContext implements ExecutionContext {
 	@Override
 	public void removeBreakpoints() {
 		breakpoints.clear();
+	}
+
+	@Override
+	public int getBreakCount() {
+		return breakCount;
+	}
+
+	@Override
+	public void incrementBreakCount(int breakCount) {
+		this.breakCount += breakCount;
 	}
 }

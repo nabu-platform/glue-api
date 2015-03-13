@@ -8,7 +8,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
 public @interface GlueMethod {
-	public String name() default "";
-	public String namespace() default "";
 	public String description() default "";
+	public String returns() default "";
 }

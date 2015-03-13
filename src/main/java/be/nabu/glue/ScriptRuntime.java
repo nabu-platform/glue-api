@@ -19,6 +19,7 @@ import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
+import be.nabu.glue.impl.ForkedExecutionContext;
 import be.nabu.glue.impl.SimpleExecutionContext;
 import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.libs.converter.ConverterFactory;
@@ -42,6 +43,7 @@ public class ScriptRuntime implements Runnable {
 	private Date started, stopped;
 	private Exception exception;
 	private OutputFormatter formatter;
+	private boolean aborted = false;
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -55,7 +57,7 @@ public class ScriptRuntime implements Runnable {
 		this.script = script;
 		this.environment = parent.environment;
 		this.debug = parent.debug;
-		this.executionContext = parent.getExecutionContext();
+		this.executionContext = new ForkedExecutionContext(parent.getExecutionContext());
 		this.forked = true;
 	}
 
@@ -245,5 +247,25 @@ public class ScriptRuntime implements Runnable {
 
 	public Exception getException() {
 		return exception;
+	}
+	
+	public ScriptRuntime getRoot() {
+		ScriptRuntime current = this;
+		while (current.getParent() != null) {
+			current = current.getParent();
+		}
+		return current;
+	}
+	
+	public void registerInThread() {
+		runtime.set(this);
+	}
+
+	public boolean isAborted() {
+		return getRoot().aborted;
+	}
+
+	public void abort() {
+		getRoot().aborted = true;
 	}
 }

@@ -7,7 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import be.nabu.glue.api.Script;
+import be.nabu.glue.api.runs.CallLocation;
 import be.nabu.glue.api.runs.Validation;
 import be.nabu.glue.api.runs.Validation.Level;
 
@@ -27,8 +27,8 @@ public class FormattedValidation {
 		formatted.setValidation(validation.getValidation());
 		formatted.setMessage(validation.getMessage());
 		List<String> callStack = new ArrayList<String>();
-		for (Script script : validation.getCallStack()) {
-			callStack.add("[" + script.getNamespace() + "] " + script.getName());
+		for (CallLocation item : validation.getCallStack()) {
+			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
 		}
 		formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
 		formatted.setCallStack(callStack);

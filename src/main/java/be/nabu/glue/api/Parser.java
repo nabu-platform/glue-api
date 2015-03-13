@@ -6,5 +6,5 @@ import java.text.ParseException;
 
 public interface Parser {
 	public ExecutorGroup parse(Reader content) throws IOException, ParseException;
-	public String substitute(String value, ExecutionContext context);
+	public String substitute(String value, ExecutionContext context, boolean allowNull);
 }

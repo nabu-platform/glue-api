@@ -4,7 +4,6 @@ import java.util.Date;
 import java.util.List;
 
 import be.nabu.glue.api.Executor;
-import be.nabu.glue.api.Script;
 
 public interface Validation {
 	
@@ -33,7 +32,7 @@ public interface Validation {
 	/**
 	 * The call stack at the time of validation
 	 */
-	public List<Script> getCallStack();
+	public List<CallLocation> getCallStack();
 	
 	/**
 	 * The executor that performed the validation

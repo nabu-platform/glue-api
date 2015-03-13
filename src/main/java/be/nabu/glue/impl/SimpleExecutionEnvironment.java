@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import be.nabu.glue.api.ExecutionEnvironment;
 
@@ -43,6 +45,16 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 			}
 		}
 		return properties;
+	}
+
+	public static SortedSet<String> getEnvironments() throws IOException {
+		SortedSet<String> environments = new TreeSet<String>();
+		for (Object key : getProperties().keySet()) {
+			String propertyName = key.toString().trim().toLowerCase();
+			int index = propertyName.indexOf('.');
+			environments.add(index < 0 ? propertyName : propertyName.substring(0, index));
+		}
+		return environments;
 	}
 	
 	private static Properties getProperties() throws IOException {

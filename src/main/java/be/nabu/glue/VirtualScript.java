@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.Iterator;
 
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Parser;
@@ -64,4 +65,8 @@ public class VirtualScript implements Script {
 		return parent.getResource(name);
 	}
 
+	@Override
+	public Iterator<String> iterator() {
+		return parent.iterator();
+	}
 }

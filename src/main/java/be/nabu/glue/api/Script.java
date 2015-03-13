@@ -5,7 +5,10 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 
-public interface Script {
+/**
+ * The script should return an iterator over the resources attached to it
+ */
+public interface Script extends Iterable<String> {
 	/**
 	 * The repository it belongs to
 	 */
