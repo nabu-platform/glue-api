@@ -31,7 +31,6 @@ public class ScriptRuntime implements Runnable {
 	private ExecutionEnvironment environment;
 	private ExecutionContext executionContext;
 	private Script script;
-	private Map<String, Object> input;
 	private Set<String> breakpoints = new HashSet<String>();
 	private ScriptRuntime parent;
 	private ScriptRuntime child;
@@ -49,7 +48,12 @@ public class ScriptRuntime implements Runnable {
 		this.script = script;
 		this.environment = environment;
 		this.debug = debug;
-		this.input = input;
+		executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
+		if (input != null) {
+			for (String key : input.keySet()) {
+				executionContext.getPipeline().put(key, input.get(key));
+			}
+		}
 	}
 	
 	private ScriptRuntime(ScriptRuntime parent, Script script) {
@@ -70,14 +74,6 @@ public class ScriptRuntime implements Runnable {
 		runtime.set(this);
 		getFormatter().start(script);
 		try {
-			if (executionContext == null) {
-				executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
-				if (input != null) {
-					for (String key : input.keySet()) {
-						executionContext.getPipeline().put(key, input.get(key));
-					}
-				}
-			}
 			try {
 				if (trace) {
 					scanForBreakpoints(script.getRoot());
