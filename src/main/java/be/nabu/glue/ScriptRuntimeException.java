@@ -22,7 +22,12 @@ public class ScriptRuntimeException extends RuntimeException {
 	@Override
 	public String getMessage() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("Error occurred in " + runtime.getScript().getName());
+		if (runtime == null || runtime.getScript() == null) {
+			builder.append("Unknown error");
+		}
+		else {
+			builder.append("Error occurred in " + runtime.getScript().getName());
+		}
 		if (runtime.getExecutionContext().getCurrent() != null) {
 			Executor executor = runtime.getExecutionContext().getCurrent();
 			builder.append(" at line " + (executor.getContext().getLineNumber() + 1) + ": " + executor.getContext().getLine());
