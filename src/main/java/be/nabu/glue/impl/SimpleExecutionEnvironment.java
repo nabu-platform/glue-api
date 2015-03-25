@@ -19,6 +19,9 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 
 	public SimpleExecutionEnvironment(String name) throws IOException {
 		this.name = name.toLowerCase();
+		// first set all generic parameters
+		this.parameters.putAll(getEnvironmentProperties("*"));
+		// then set all specific parameters
 		this.parameters.putAll(getEnvironmentProperties(this.name));
 	}
 	
