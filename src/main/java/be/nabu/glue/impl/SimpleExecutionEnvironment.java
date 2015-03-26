@@ -61,23 +61,41 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 	}
 	
 	private static Properties getProperties() throws IOException {
+		// we look for files in different places and merge the results in a pre-defined order allowing you to create local settings that overwrite the default distributed ones
 		if (properties == null) {
 			properties = new Properties();
-			// first check the current directory where glue is running
-			File file = new File(System.getProperty("user.dir"), ".glue");
-			// if it does not exist, check the home folder
-			if (!file.exists()) {
-				file = new File(System.getProperty("user.home"), ".glue");
+			// check the installation directory (if possible)
+			String installationDirectory = System.getenv("GLUE");
+			File installationFile = installationDirectory == null ? null : new File(installationDirectory, ".glue");
+			if (installationFile != null && installationFile.exists()) {
+				properties.putAll(parse(installationFile));
 			}
-			if (file.exists()) {
-				FileInputStream input = new FileInputStream(file);
-				try {
-					properties.load(input);
-				}
-				finally {
-					input.close();
+			// if we can't get the installation directory, get the current directory
+			else {
+				// check the current directory where glue is running, this may or may not be the installation folder
+				// if it _is_ the same as the installation folder, don't reload or you might overwrite settings in the installation directory
+				File localFile = new File(System.getProperty("user.dir"), ".glue");
+				if (localFile.exists()) {
+					properties.putAll(parse(localFile));
 				}
 			}
+			// check the home folder last, any custom changes here take priority over the previous ones allowing for local overrides
+			File homeFile = new File(System.getProperty("user.home"), ".glue");
+			if (homeFile.exists()) {
+				properties.putAll(parse(homeFile));
+			}
+		}
+		return properties;
+	}
+	
+	private static Properties parse(File file) throws IOException {
+		Properties properties = new Properties();
+		FileInputStream input = new FileInputStream(file);
+		try {
+			properties.load(input);
+		}
+		finally {
+			input.close();
 		}
 		return properties;
 	}
