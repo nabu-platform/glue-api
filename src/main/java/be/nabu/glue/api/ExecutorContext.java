@@ -9,4 +9,6 @@ public interface ExecutorContext {
 	public String getDescription();
 	public String getLine();
 	public Map<String, String> getAnnotations();
+	public int getStartPosition();
+	public int getEndPosition();
 }

@@ -7,7 +7,7 @@ import be.nabu.glue.api.ExecutorContext;
 
 public class SimpleExecutorContext implements ExecutorContext {
 
-	private int lineNumber;
+	private int lineNumber, startPosition, endPosition;
 	private String label, comment;
 	private String line;
 	private Map<String, String> annotations = new HashMap<String, String>();
@@ -41,7 +41,11 @@ public class SimpleExecutorContext implements ExecutorContext {
 	public String getLine() {
 		return line;
 	}
-	
+
+	public void setLine(String line) {
+		this.line = line;
+	}
+
 	@Override
 	public Map<String, String> getAnnotations() {
 		return annotations;
@@ -62,5 +66,21 @@ public class SimpleExecutorContext implements ExecutorContext {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public int getStartPosition() {
+		return startPosition;
+	}
+
+	public void setStartPosition(int startPosition) {
+		this.startPosition = startPosition;
+	}
+
+	public int getEndPosition() {
+		return endPosition;
+	}
+
+	public void setEndPosition(int endPosition) {
+		this.endPosition = endPosition;
 	}
 }
