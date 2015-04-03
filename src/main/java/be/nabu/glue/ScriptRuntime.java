@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,6 +21,7 @@ import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
+import be.nabu.glue.api.Transactionable;
 import be.nabu.glue.impl.ForkedExecutionContext;
 import be.nabu.glue.impl.SimpleExecutionContext;
 import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
@@ -43,6 +46,7 @@ public class ScriptRuntime implements Runnable {
 	private Exception exception;
 	private OutputFormatter formatter;
 	private boolean aborted = false;
+	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -121,6 +125,20 @@ public class ScriptRuntime implements Runnable {
 				runtime.set(getParent());
 			}
 			else {
+				// if there is no parent left, finish all the transactionables
+				for (Transactionable transactionable : getTransactionables()) {
+					try {
+						if (exception == null) {
+							transactionable.commit();
+						}
+						else {
+							transactionable.rollback();
+						}
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
 				runtime.remove();
 			}
 		}
@@ -263,5 +281,22 @@ public class ScriptRuntime implements Runnable {
 
 	public void abort() {
 		getRoot().aborted = true;
+	}
+	
+	List<Transactionable> getTransactionables() {
+		if (parent != null) {
+			return parent.getTransactionables();
+		}
+		return transactionables;
+	}
+	
+	public void addTransactionable(Transactionable transactionable) {
+		if (!getTransactionables().contains(transactionable)) {
+			getTransactionables().add(transactionable);
+		}
+	}
+	
+	public void removeTransactionable(Transactionable transactionable) {
+		getTransactionables().remove(transactionable);
 	}
 }
