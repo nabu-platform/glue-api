@@ -17,8 +17,12 @@ import be.nabu.glue.impl.SimpleParameterDescription;
 public class ScriptUtils {
 	
 	public static List<ParameterDescription> getInputs(Script script) throws ParseException, IOException {
+		return getInputs(script.getRoot(), Boolean.parseBoolean(System.getProperty("recursive.inputs", "true")));
+	}
+	
+	public static List<ParameterDescription> getInputs(ExecutorGroup group, boolean recursive) throws ParseException, IOException {
 		Map<String, ParameterDescription> inputs = new LinkedHashMap<String, ParameterDescription>();
-		for (Executor executor : script.getRoot().getChildren()) {
+		for (Executor executor : group.getChildren()) {
 			if (executor instanceof AssignmentExecutor) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null && !assignmentExecutor.isOverwriteIfExists()) {
@@ -28,6 +32,13 @@ public class ScriptUtils {
 							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
 						}
 						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null, enumerations == null ? new String[0] : enumerations));
+					}
+				}
+			}
+			else if (executor instanceof ExecutorGroup && recursive) {
+				for (ParameterDescription childDescription : getInputs((ExecutorGroup) executor, recursive)) {
+					if (!inputs.containsKey(childDescription.getName())) {
+						inputs.put(childDescription.getName(), childDescription);
 					}
 				}
 			}
