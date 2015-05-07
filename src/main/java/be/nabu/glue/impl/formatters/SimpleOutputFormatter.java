@@ -12,9 +12,15 @@ import be.nabu.glue.api.runs.Validation;
 public class SimpleOutputFormatter implements OutputFormatter {
 
 	private Writer writer;
+	private boolean addLineFeeds;
 
 	public SimpleOutputFormatter(Writer writer) {
+		this(writer, true);
+	}
+	
+	public SimpleOutputFormatter(Writer writer, boolean addLineFeeds) {
 		this.writer = writer;
+		this.addLineFeeds = addLineFeeds;
 	}
 	
 	@Override
@@ -35,7 +41,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	@Override
 	public void validated(Validation...validations) {
 		if (!"true".equals(System.getProperty("hideValidation", "true"))) {
-			print(validations);
+			print((Object[]) validations);
 		}
 	}
 
@@ -44,7 +50,10 @@ public class SimpleOutputFormatter implements OutputFormatter {
 		if (messages != null) {
 			for (Object message : messages) {
 				try {
-					writer.append(message == null ? "null" : message.toString()).append(System.getProperty("line.separator"));
+					writer.append(message == null ? "null" : message.toString());
+					if (addLineFeeds) {
+						writer.append(System.getProperty("line.separator"));
+					}
 					writer.flush();
 				}
 				catch (IOException e) {

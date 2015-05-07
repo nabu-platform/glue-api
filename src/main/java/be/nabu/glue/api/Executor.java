@@ -6,4 +6,5 @@ public interface Executor {
 	public ExecutorContext getContext();
 	public String getId();
 	public ExecutorGroup getParent();
+	public boolean isGenerated();
 }
