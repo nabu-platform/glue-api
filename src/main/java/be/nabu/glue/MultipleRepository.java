@@ -16,7 +16,7 @@ import be.nabu.glue.api.ScriptRepository;
 public class MultipleRepository implements ScriptRepository {
 
 	private List<ScriptRepository> repositories = new ArrayList<ScriptRepository>();
-	private Map<String, Script> scripts;
+	private Map<String, Script> scriptsBySimpleName, scriptsByFullName;
 	private ScriptRepository parent;
 	
 	public MultipleRepository(ScriptRepository parent, ScriptRepository...children) {
@@ -26,35 +26,60 @@ public class MultipleRepository implements ScriptRepository {
 	
 	@Override
 	public Iterator<Script> iterator() {
-		return getScripts().values().iterator();
+		return getScriptsBySimpleName().values().iterator();
 	}
-	
-	private Map<String, Script> getScripts() {
-		if (scripts == null) {
-			scripts = new HashMap<String, Script>();
-			for (ScriptRepository repository : repositories) {
-				for (Script script : repository) {
-					if (!scripts.containsKey(script.getName())) {
-						scripts.put(script.getName(), script);
+
+	private Map<String, Script> getScriptsBySimpleName() {
+		if (scriptsBySimpleName == null) {
+			loadScripts();
+		}
+		return scriptsBySimpleName;
+	}
+
+	private synchronized void loadScripts() {
+		scriptsBySimpleName = new HashMap<String, Script>();
+		scriptsByFullName = new HashMap<String, Script>();
+		for (ScriptRepository repository : repositories) {
+			for (Script script : repository) {
+				if (!scriptsByFullName.containsKey(ScriptUtils.getFullName(script))) {
+					scriptsByFullName.put(ScriptUtils.getFullName(script), script);
+					if (!scriptsBySimpleName.containsKey(script.getName())) {
+						scriptsBySimpleName.put(script.getName(), script);
 					}
 				}
 			}
 		}
-		return scripts;
+	}
+	
+	private Map<String, Script> getScriptsByFullName() {
+		if (scriptsByFullName == null) {
+			loadScripts();
+		}
+		return scriptsByFullName;
 	}
 
 	@Override
 	public Script getScript(String name) throws IOException, ParseException {
-		if (!getScripts().containsKey(name)) {
+		// try the full name first
+		Script script = getScriptsByFullName().get(name);
+		// then the simple name
+		if (script == null) {
+			script = getScriptsBySimpleName().get(name);
+		}
+		// if still not found, check the target repositories, it may be unscannable
+		if (script == null) {
 			for (ScriptRepository repository : repositories) {
-				Script script = repository.getScript(name);
+				script = repository.getScript(name);
 				if (script != null) {
-					scripts.put(name, script);
+					synchronized(this) {
+						scriptsByFullName.put(ScriptUtils.getFullName(script), script);
+						scriptsBySimpleName.put(script.getName(), script);
+					}
 					break;
 				}
 			}
 		}
-		return getScripts().get(name);
+		return script;
 	}
 
 	@Override
@@ -73,7 +98,8 @@ public class MultipleRepository implements ScriptRepository {
 
 	@Override
 	public synchronized void refresh() throws IOException {
-		scripts = null;
+		scriptsBySimpleName = null;
+		scriptsByFullName = null;
 		for (ScriptRepository repository : repositories) {
 			repository.refresh();
 		}
