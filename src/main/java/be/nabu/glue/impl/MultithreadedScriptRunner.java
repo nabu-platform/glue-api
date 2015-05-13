@@ -16,10 +16,12 @@ import java.util.concurrent.RejectedExecutionException;
 
 import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.ExecutionEnvironment;
+import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptFilter;
 import be.nabu.glue.api.ScriptRepository;
+import be.nabu.glue.api.runs.CallLocation;
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptRunner;
 import be.nabu.glue.api.runs.Validation;
@@ -86,7 +88,14 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 						long runtime = new Date().getTime() - scriptRuntime.getStarted().getTime();
 						if (runtime > maxScriptRuntime) {
 							synchronized(System.out) {
-								System.out.println("Cancelling: " + scriptRuntime.getScript().getName() + " (" + scriptRuntime.getScript().getNamespace() + ") because it is running too long: " + runtime + " > " + maxScriptRuntime);
+								System.out.println("Aborting: " + scriptRuntime.getScript().getName() + " (" + scriptRuntime.getScript().getNamespace() + ") because it is running too long: " + runtime + " > " + maxScriptRuntime);
+								List<Validation> messages = (List<Validation>) ScriptRuntime.getRuntime().getContext().get("$validation");
+								if (messages == null) {
+									messages = new ArrayList<Validation>();
+									ScriptRuntime.getRuntime().getContext().put("$validation", messages);
+								}
+								messages.add(new AbortedValidation(scriptRuntime.getExecutionContext().getCurrent(), runtime, maxScriptRuntime));
+								scriptRuntime.abort();
 							}
 							future.cancel(true);
 						}
@@ -109,5 +118,50 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 
 	public boolean isDebug() {
 		return debug;
+	}
+	
+	public static class AbortedValidation implements Validation {
+
+		private long maxRuntime;
+		private long runtime;
+		private Date timestamp = new Date();
+		private Executor executor;
+
+		public AbortedValidation(Executor executor, long runtime, long maxRuntime) {
+			this.executor = executor;
+			this.runtime = runtime;
+			this.maxRuntime = maxRuntime;
+		}
+		
+		@Override
+		public Level getLevel() {
+			return Level.ERROR;
+		}
+
+		@Override
+		public String getValidation() {
+			return runtime + " > " + maxRuntime;
+		}
+
+		@Override
+		public String getMessage() {
+			return "The script run timed out";
+		}
+
+		@Override
+		public List<CallLocation> getCallStack() {
+			return new ArrayList<CallLocation>();
+		}
+
+		@Override
+		public Executor getExecutor() {
+			return executor;
+		}
+
+		@Override
+		public Date getTimestamp() {
+			return timestamp;
+		}
+		
 	}
 }

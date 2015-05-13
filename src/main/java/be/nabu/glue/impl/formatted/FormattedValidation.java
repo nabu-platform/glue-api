@@ -30,10 +30,12 @@ public class FormattedValidation {
 		for (CallLocation item : validation.getCallStack()) {
 			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
 		}
-		formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
 		formatted.setCallStack(callStack);
-		formatted.setLine(validation.getExecutor().getContext().getLine());
-		formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
+		if (validation.getExecutor() != null) {
+			formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
+			formatted.setLine(validation.getExecutor().getContext().getLine());
+			formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
+		}
 		formatted.setTimestamp(validation.getTimestamp());
 		return formatted;
 	}
