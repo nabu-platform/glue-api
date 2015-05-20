@@ -89,10 +89,10 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 						if (runtime > maxScriptRuntime) {
 							synchronized(System.out) {
 								System.out.println("Aborting: " + scriptRuntime.getScript().getName() + " (" + scriptRuntime.getScript().getNamespace() + ") because it is running too long: " + runtime + " > " + maxScriptRuntime);
-								List<Validation> messages = (List<Validation>) ScriptRuntime.getRuntime().getContext().get("$validation");
+								List<Validation> messages = (List<Validation>) scriptRuntime.getContext().get("$validation");
 								if (messages == null) {
 									messages = new ArrayList<Validation>();
-									ScriptRuntime.getRuntime().getContext().put("$validation", messages);
+									scriptRuntime.getContext().put("$validation", messages);
 								}
 								messages.add(new AbortedValidation(scriptRuntime.getExecutionContext().getCurrent(), runtime, maxScriptRuntime));
 								scriptRuntime.abort();
