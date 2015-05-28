@@ -8,19 +8,23 @@ import be.nabu.glue.api.ParameterDescription;
 public class SimpleParameterDescription implements ParameterDescription {
 
 	private String name, description, type;
-	
+	private boolean isVarargs;
 	private List<?> enumerations;
 	
-	public SimpleParameterDescription(String name, String description, String type, Object...enumerations) {
+	public SimpleParameterDescription(String name, String description, String type) {
+		this(name, description, type, false);
+	}
+	
+	public SimpleParameterDescription(String name, String description, String type, boolean isVarargs, Object...enumerations) {
 		this.name = name;
 		this.description = description;
 		this.type = type;
+		this.isVarargs = isVarargs;
 		this.enumerations = Arrays.asList(enumerations);
 	}
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
 		return name;
 	}
 
@@ -37,5 +41,10 @@ public class SimpleParameterDescription implements ParameterDescription {
 	@Override
 	public List<?> getEnumerations() {
 		return enumerations;
+	}
+
+	@Override
+	public boolean isVarargs() {
+		return isVarargs;
 	}
 }

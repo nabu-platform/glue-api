@@ -31,7 +31,7 @@ public class ScriptUtils {
 						if (assignmentExecutor.getContext().getAnnotations() != null && assignmentExecutor.getContext().getAnnotations().containsKey("enumeration")) {
 							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
 						}
-						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null, enumerations == null ? new String[0] : enumerations));
+						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null, false, enumerations == null ? new String[0] : enumerations));
 					}
 				}
 			}

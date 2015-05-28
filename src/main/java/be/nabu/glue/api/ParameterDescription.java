@@ -7,4 +7,5 @@ public interface ParameterDescription {
 	public String getType();
 	public String getDescription();
 	public List<?> getEnumerations();
+	public boolean isVarargs();
 }
