@@ -20,6 +20,7 @@ import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
+import be.nabu.glue.api.PermissionValidator;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.Transactionable;
 import be.nabu.glue.impl.ForkedExecutionContext;
@@ -47,6 +48,7 @@ public class ScriptRuntime implements Runnable {
 	private OutputFormatter formatter;
 	private boolean aborted = false;
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
+	private PermissionValidator permissionValidator;
 
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
@@ -79,6 +81,9 @@ public class ScriptRuntime implements Runnable {
 		getFormatter().start(script);
 		try {
 			try {
+				if (permissionValidator != null && !permissionValidator.canExecute(script, environment)) {
+					throw new ScriptRuntimeException(this, "No permission to execute script: " + script.getName());
+				}
 				if (trace) {
 					scanForBreakpoints(script.getRoot());
 					executionContext.addBreakpoint(breakpoints.toArray(new String[breakpoints.size()]));
@@ -298,5 +303,13 @@ public class ScriptRuntime implements Runnable {
 	
 	public void removeTransactionable(Transactionable transactionable) {
 		getTransactionables().remove(transactionable);
+	}
+
+	public PermissionValidator getPermissionValidator() {
+		return permissionValidator == null && parent != null ? parent.getPermissionValidator() : permissionValidator;
+	}
+
+	public void setPermissionValidator(PermissionValidator permissionValidator) {
+		this.permissionValidator = permissionValidator;
 	}
 }
