@@ -2,6 +2,7 @@ package be.nabu.glue.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,9 +16,15 @@ public class ForkedExecutionContext implements ExecutionContext {
 	private ExecutionContext parent;
 	private Executor current;
 	private int breakCount;
+	private Map<String, Object> pipeline;
 
 	public ForkedExecutionContext(ExecutionContext parent) {
+		this(parent, false);
+	}
+	
+	public ForkedExecutionContext(ExecutionContext parent, boolean localPipeline) {
 		this.parent = parent;
+		this.pipeline = localPipeline ? new HashMap<String, Object>(parent.getPipeline()) : parent.getPipeline();
 	}
 	
 	@Override
@@ -27,7 +34,7 @@ public class ForkedExecutionContext implements ExecutionContext {
 
 	@Override
 	public Map<String, Object> getPipeline() {
-		return parent.getPipeline();
+		return pipeline;
 	}
 
 	@Override

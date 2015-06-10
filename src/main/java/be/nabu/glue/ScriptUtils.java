@@ -21,29 +21,33 @@ public class ScriptUtils {
 	}
 	
 	public static List<ParameterDescription> getInputs(ExecutorGroup group, boolean recursive) throws ParseException, IOException {
-		Map<String, ParameterDescription> inputs = new LinkedHashMap<String, ParameterDescription>();
+		return getParameters(group, recursive, true);
+	}
+
+	public static List<ParameterDescription> getParameters(ExecutorGroup group, boolean recursive, boolean inputOnly) throws ParseException, IOException {
+		Map<String, ParameterDescription> parameters = new LinkedHashMap<String, ParameterDescription>();
 		for (Executor executor : group.getChildren()) {
 			if (executor instanceof AssignmentExecutor) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
-				if (assignmentExecutor.getVariableName() != null && !assignmentExecutor.isOverwriteIfExists()) {
-					if (!inputs.containsKey(assignmentExecutor.getVariableName())) {
+				if (assignmentExecutor.getVariableName() != null && (!assignmentExecutor.isOverwriteIfExists() || !inputOnly)) {
+					if (!parameters.containsKey(assignmentExecutor.getVariableName())) {
 						Object [] enumerations = null;
 						if (assignmentExecutor.getContext().getAnnotations() != null && assignmentExecutor.getContext().getAnnotations().containsKey("enumeration")) {
 							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
 						}
-						inputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null, false, enumerations == null ? new String[0] : enumerations));
+						parameters.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType(), false, enumerations == null ? new String[0] : enumerations));
 					}
 				}
 			}
 			else if (executor instanceof ExecutorGroup && recursive) {
 				for (ParameterDescription childDescription : getInputs((ExecutorGroup) executor, recursive)) {
-					if (!inputs.containsKey(childDescription.getName())) {
-						inputs.put(childDescription.getName(), childDescription);
+					if (!parameters.containsKey(childDescription.getName())) {
+						parameters.put(childDescription.getName(), childDescription);
 					}
 				}
 			}
 		}
-		return new ArrayList<ParameterDescription>(inputs.values());
+		return new ArrayList<ParameterDescription>(parameters.values());
 	}
 	
 	public static List<ParameterDescription> getOutputs(Script script) throws ParseException, IOException {
@@ -56,7 +60,7 @@ public class ScriptUtils {
 			if (executor instanceof AssignmentExecutor) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null) {
-					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), null));
+					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType()));
 				}
 			}
 			if (executor instanceof ExecutorGroup) {

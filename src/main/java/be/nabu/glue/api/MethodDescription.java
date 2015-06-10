@@ -8,4 +8,5 @@ public interface MethodDescription {
 	public String getDescription();
 	public List<ParameterDescription> getParameters();
 	public List<ParameterDescription> getReturnValues();
+	public boolean isNamedParametersAllowed();
 }
