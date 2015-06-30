@@ -16,6 +16,36 @@ import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
 	
+	public static Executor getExecutor(ExecutorGroup group, String id) {
+		for (Executor child : group.getChildren()) {
+			if (id.equals(child.getId())) {
+				return child;
+			}
+			if (child instanceof ExecutorGroup) {
+				Executor executor = getExecutor((ExecutorGroup) child, id);
+				if (executor != null) {
+					return executor;
+				}
+			}
+		}
+		return null;
+	}
+	
+	public static Executor getLine(ExecutorGroup group, int lineNumber) {
+		for (Executor child : group.getChildren()) {
+			if (child.getContext() != null && child.getContext().getLineNumber() == lineNumber) {
+				return child;
+			}
+			if (child instanceof ExecutorGroup) {
+				Executor line = getLine((ExecutorGroup) child, lineNumber);
+				if (line != null) {
+					return line;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public static List<ParameterDescription> getInputs(Script script) throws ParseException, IOException {
 		return getInputs(script.getRoot(), Boolean.parseBoolean(System.getProperty("recursive.inputs", "true")));
 	}
