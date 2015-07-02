@@ -62,12 +62,13 @@ public class ScriptRuntime implements Runnable {
 		}
 	}
 	
-	private ScriptRuntime(ScriptRuntime parent, Script script) {
+	private ScriptRuntime(ScriptRuntime parent, Script script, boolean localPipeline) {
 		this.parent = parent;
 		this.script = script;
 		this.environment = parent.environment;
 		this.debug = parent.debug;
-		this.executionContext = new ForkedExecutionContext(parent.getExecutionContext());
+		this.trace = parent.trace;
+		this.executionContext = new ForkedExecutionContext(parent.getExecutionContext(), localPipeline);
 		this.forked = true;
 	}
 
@@ -161,7 +162,11 @@ public class ScriptRuntime implements Runnable {
 	}
 
 	public ScriptRuntime fork(Script script) {
-		return new ScriptRuntime(this, script);
+		return new ScriptRuntime(this, script, false);
+	}
+	
+	public ScriptRuntime fork(Script script, boolean localPipeline) {
+		return new ScriptRuntime(this, script, localPipeline);
 	}
 	
 	public ExecutionContext getExecutionContext() {
