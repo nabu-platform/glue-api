@@ -10,19 +10,20 @@ import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptResultInterpretation;
-import be.nabu.glue.api.runs.Validation;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "result")
 @XmlType(propOrder = { "level", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
 public class FormattedScriptResult {
 	private List<FormattedValidation> validations;
-	private Level level;
+	private Severity severity;
 	private String name, namespace, exception, log, environment;
 	private Date started, stopped;
 	private int amountValidations, amountSuccessful, amountError, amountCritical;
@@ -30,7 +31,7 @@ public class FormattedScriptResult {
 	
 	public static FormattedScriptResult format(ScriptResult result, ScriptResultInterpretation interpretation) {
 		FormattedScriptResult formatted = new FormattedScriptResult();
-		formatted.setLevel(result.getResultLevel());
+		formatted.setSeverity(result.getResultLevel());
 		formatted.setNamespace(result.getScript().getNamespace());
 		formatted.setName(result.getScript().getName());
 		formatted.setStarted(result.getStarted());
@@ -38,8 +39,8 @@ public class FormattedScriptResult {
 		formatted.setEnvironment(result.getEnvironment().getName());
 		List<FormattedValidation> validations = new ArrayList<FormattedValidation>();
 		int amountSuccessful = 0, amountError = 0, amountCritical = 0;
-		for (Validation validation : result.getValidations()) {
-			switch(validation.getLevel()) {
+		for (GlueValidation validation : result.getValidations()) {
+			switch(validation.getSeverity()) {
 				case CRITICAL: amountCritical++; break;
 				case ERROR: amountError++; break;
 				default: amountSuccessful++;
@@ -72,11 +73,15 @@ public class FormattedScriptResult {
 	public void setValidations(List<FormattedValidation> validations) {
 		this.validations = validations;
 	}
-	public Level getLevel() {
-		return level;
+	/**
+	 * This name is for legacy reasons, it was called level before it merged with the validation API
+	 */
+	@XmlElement(name = "level")
+	public Severity getSeverity() {
+		return severity;
 	}
-	public void setLevel(Level level) {
-		this.level = level;
+	public void setSeverity(Severity level) {
+		this.severity = level;
 	}
 	public String getName() {
 		return name;

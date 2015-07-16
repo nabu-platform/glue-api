@@ -9,21 +9,21 @@ import java.util.List;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.ScriptResult;
-import be.nabu.glue.api.runs.Validation;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class SimpleScriptResult implements ScriptResult {
 
 	private Script script;
-	private Level level;
+	private Severity severity;
 	private Date started;
 	private String log;
-	private List<Validation> validations;
+	private List<GlueValidation> validations;
 	private Date stopped;
 	private Exception exception;
 	private ExecutionEnvironment environment;
 
-	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, List<Validation> validations) {
+	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, List<GlueValidation> validations) {
 		this.environment = environment;
 		this.script = script;
 		this.started = started;
@@ -31,27 +31,27 @@ public class SimpleScriptResult implements ScriptResult {
 		this.exception = exception;
 		this.log = log;
 		this.validations = validations;
-		this.level = exception == null ? Level.INFO : Level.ERROR;
-		for (Validation validation : validations) {
-			switch(validation.getLevel()) {
-				case WARN:
-					if (Level.INFO.equals(this.level)) {
-						this.level = Level.WARN;
+		this.severity = exception == null ? Severity.INFO : Severity.ERROR;
+		for (GlueValidation validation : validations) {
+			switch(validation.getSeverity()) {
+				case WARNING:
+					if (Severity.INFO.equals(this.severity)) {
+						this.severity = Severity.WARNING;
 					}
 				break;
 				case ERROR:
-					if (Level.INFO.equals(this.level) || Level.WARN.equals(this.level)) {
-						this.level = Level.ERROR;
+					if (Severity.INFO.equals(this.severity) || Severity.WARNING.equals(this.severity)) {
+						this.severity = Severity.ERROR;
 					}
 				break;
 				case CRITICAL:
-					this.level = Level.CRITICAL;
+					this.severity = Severity.CRITICAL;
 				break;
 			}
 		}
 		try {
-			if (Level.ERROR.equals(this.level) && script.getRoot().getContext().getAnnotations().containsKey("critical")) {
-				this.level = Level.CRITICAL;
+			if (Severity.ERROR.equals(this.severity) && script.getRoot().getContext().getAnnotations().containsKey("critical")) {
+				this.severity = Severity.CRITICAL;
 			}
 		}
 		catch (IOException e) {
@@ -63,13 +63,13 @@ public class SimpleScriptResult implements ScriptResult {
 		
 	}
 	
-	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, Validation...validations) {
+	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, GlueValidation...validations) {
 		this(environment, script, started, stopped, exception, log, Arrays.asList(validations));
 	}
 	
 	@Override
-	public Level getResultLevel() {
-		return level;
+	public Severity getResultLevel() {
+		return severity;
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class SimpleScriptResult implements ScriptResult {
 	}
 
 	@Override
-	public List<Validation> getValidations() {
+	public List<GlueValidation> getValidations() {
 		return validations;
 	}
 

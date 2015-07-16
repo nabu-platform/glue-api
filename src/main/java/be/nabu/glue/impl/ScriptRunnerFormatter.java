@@ -7,14 +7,14 @@ import java.util.List;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
-import be.nabu.glue.api.runs.Validation;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class ScriptRunnerFormatter implements OutputFormatter {
 
 	private OutputFormatter parent;
 	private Script root;
-	private List<Validation> errors = new ArrayList<Validation>();
+	private List<GlueValidation> errors = new ArrayList<GlueValidation>();
 
 	public ScriptRunnerFormatter(OutputFormatter parent) {
 		this.parent = parent;
@@ -42,9 +42,9 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 	}
 
 	@Override
-	public void validated(Validation...validations) {
-		for (Validation validation : validations) {
-			if (validation.getLevel() == Level.ERROR || validation.getLevel() == Level.CRITICAL) {
+	public void validated(GlueValidation...validations) {
+		for (GlueValidation validation : validations) {
+			if (validation.getSeverity() == Severity.ERROR || validation.getSeverity() == Severity.CRITICAL) {
 				errors.add(validation);
 			}
 		}
@@ -73,7 +73,7 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 					long duration = stopped.getTime() - started.getTime();
 					System.out.println(duration + "ms");
 				}
-				for (Validation error : errors) {
+				for (GlueValidation error : errors) {
 					System.out.println("- " + error);
 				}
 			}

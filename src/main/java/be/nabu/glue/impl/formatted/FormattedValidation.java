@@ -4,30 +4,31 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.CallLocation;
-import be.nabu.glue.api.runs.Validation;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "validation")
 @XmlType(propOrder = { "level", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack" })
 public class FormattedValidation {
 	
-	private Level level;
+	private Severity severity;
 	private String validation, message, line, group;
 	private int lineNumber;
 	private List<String> callStack;
 	private Date timestamp;
 	
-	public static FormattedValidation format(Validation validation) {
+	public static FormattedValidation format(GlueValidation validation) {
 		FormattedValidation formatted = new FormattedValidation();
-		formatted.setLevel(validation.getLevel());
-		formatted.setValidation(validation.getValidation());
+		formatted.setSeverity(validation.getSeverity());
+		formatted.setValidation(validation.getMessage());
 		formatted.setMessage(validation.getMessage());
 		List<String> callStack = new ArrayList<String>();
-		for (CallLocation item : validation.getCallStack()) {
+		for (CallLocation item : validation.getContext()) {
 			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
 		}
 		formatted.setCallStack(callStack);
@@ -40,12 +41,16 @@ public class FormattedValidation {
 		return formatted;
 	}
 
-	public Level getLevel() {
-		return level;
+	/**
+	 * Named level for legacy reasons
+	 */
+	@XmlElement(name = "level")
+	public Severity getSeverity() {
+		return severity;
 	}
 
-	public void setLevel(Level level) {
-		this.level = level;
+	public void setSeverity(Severity level) {
+		this.severity = level;
 	}
 
 	public String getValidation() {

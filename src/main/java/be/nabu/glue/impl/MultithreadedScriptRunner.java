@@ -24,8 +24,9 @@ import be.nabu.glue.api.ScriptRepository;
 import be.nabu.glue.api.runs.CallLocation;
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptRunner;
-import be.nabu.glue.api.runs.Validation;
+import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.glue.impl.formatters.MarkdownOutputFormatter;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class MultithreadedScriptRunner implements ScriptRunner {
 
@@ -89,9 +90,9 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 						if (runtime > maxScriptRuntime) {
 							synchronized(System.out) {
 								System.out.println("Aborting: " + scriptRuntime.getScript().getName() + " (" + scriptRuntime.getScript().getNamespace() + ") because it is running too long: " + runtime + " > " + maxScriptRuntime);
-								List<Validation> messages = (List<Validation>) scriptRuntime.getContext().get("$validation");
+								List<GlueValidation> messages = (List<GlueValidation>) scriptRuntime.getContext().get("$validation");
 								if (messages == null) {
-									messages = new ArrayList<Validation>();
+									messages = new ArrayList<GlueValidation>();
 									scriptRuntime.getContext().put("$validation", messages);
 								}
 								messages.add(new AbortedValidation(scriptRuntime.getExecutionContext().getCurrent(), runtime, maxScriptRuntime));
@@ -110,8 +111,8 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		}
 		List<ScriptResult> results = new ArrayList<ScriptResult>();
 		for (ScriptRuntime runtime : runtimes) {
-			List<Validation> validations  = (List<Validation>) runtime.getContext().get("$validation");
-			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString(), validations == null ? new ArrayList<Validation>() : validations));
+			List<GlueValidation> validations  = (List<GlueValidation>) runtime.getContext().get("$validation");
+			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString(), validations == null ? new ArrayList<GlueValidation>() : validations));
 		}
 		return results;
 	}
@@ -120,7 +121,7 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		return debug;
 	}
 	
-	public static class AbortedValidation implements Validation {
+	public static class AbortedValidation implements GlueValidation {
 
 		private long maxRuntime;
 		private long runtime;
@@ -134,22 +135,22 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		}
 		
 		@Override
-		public Level getLevel() {
-			return Level.ERROR;
-		}
-
-		@Override
-		public String getValidation() {
-			return runtime + " > " + maxRuntime;
+		public Severity getSeverity() {
+			return Severity.ERROR;
 		}
 
 		@Override
 		public String getMessage() {
+			return runtime + " > " + maxRuntime;
+		}
+
+		@Override
+		public String getDescription() {
 			return "The script run timed out";
 		}
 
 		@Override
-		public List<CallLocation> getCallStack() {
+		public List<CallLocation> getContext() {
 			return new ArrayList<CallLocation>();
 		}
 
@@ -161,6 +162,11 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		@Override
 		public Date getTimestamp() {
 			return timestamp;
+		}
+
+		@Override
+		public Integer getCode() {
+			return 0;
 		}
 		
 	}

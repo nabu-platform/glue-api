@@ -28,6 +28,11 @@
 			<artifactId>converter-api</artifactId>
 			<version>1.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>be.nabu.libs.validator</groupId>
+			<artifactId>validator-api</artifactId>
+			<version>1.1-SNAPSHOT</version>
+		</dependency>
 	
 		<!-- testing -->
 		<dependency>

@@ -23,5 +23,14 @@ public class SimpleCallLocation implements CallLocation {
 	public Executor getExecutor() {
 		return executor;
 	}
+	
+	@Override
+	public String toString() {
+		String message = script.getName();
+		if (executor != null && executor.getContext() != null) {
+			message += ":" + (executor.getContext().getLineNumber() + 1);
+		}
+		return message;
+	}
 
 }

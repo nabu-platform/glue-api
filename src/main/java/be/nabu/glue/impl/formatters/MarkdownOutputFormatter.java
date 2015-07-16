@@ -11,8 +11,8 @@ import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Script;
-import be.nabu.glue.api.runs.Validation;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	
@@ -80,13 +80,13 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	}
 
 	@Override
-	public void validated(Validation...validations) {
+	public void validated(GlueValidation...validations) {
 		if (inBlock) {
 			inBlock = false;
 			super.print("");
 		}
 		inValidation = true;
-		for (Validation validation : validations) {
+		for (GlueValidation validation : validations) {
 			boolean grouped = false;
 			String validationGroup = validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null 
 				? validation.getExecutor().getContext().getAnnotations().get("group")
@@ -102,7 +102,7 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 			else if (this.validationGroup != null) {
 				this.validationGroup = null;
 			}
-			if (validation.getLevel() == Level.ERROR || validation.getLevel() == Level.CRITICAL) {
+			if (validation.getSeverity() == Severity.ERROR || validation.getSeverity() == Severity.CRITICAL) {
 				super.print((grouped ? "\t" : "") + "- !!" + validation + "!!");
 			}
 			else {

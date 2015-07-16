@@ -5,13 +5,13 @@ import java.util.List;
 
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Script;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public interface ScriptResult {
 	/**
 	 * The level of the complete test case
 	 */
-	public Level getResultLevel();
+	public Severity getResultLevel();
 	
 	/**
 	 * The script being tested
@@ -21,7 +21,7 @@ public interface ScriptResult {
 	/**
 	 * The validations that occurred during the script run
 	 */
-	public List<Validation> getValidations();
+	public List<GlueValidation> getValidations();
 	
 	/**
 	 * When the script started execution

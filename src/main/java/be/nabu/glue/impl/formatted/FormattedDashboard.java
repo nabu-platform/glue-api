@@ -8,13 +8,14 @@ import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptResultInterpretation;
 import be.nabu.glue.api.runs.ScriptResultInterpreter;
-import be.nabu.glue.api.runs.Validation.Level;
+import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "dashboard")
 @XmlType(propOrder = { "started", "stopped", "amountRun", "amountSuccessful", "amountError", "amountCritical", "results" })
@@ -36,10 +37,10 @@ public class FormattedDashboard {
 				case CRITICAL: amountCritical++; break;
 				case INFO: amountSuccessful++; break;
 				case ERROR: amountError++; break;
-				case WARN: amountSuccessful++; break;
+				case WARNING: amountSuccessful++; break;
 			}
 			FormattedDashboardEntry entry = new FormattedDashboardEntry();
-			entry.setLevel(result.getResultLevel());
+			entry.setSeverity(result.getResultLevel());
 			entry.setName(result.getScript().getName());
 			entry.setNamespace(result.getScript().getNamespace());
 			entry.setStarted(result.getStarted());
@@ -114,7 +115,7 @@ public class FormattedDashboard {
 	@XmlType(propOrder = { "namespace", "name", "environment", "level", "started", "stopped", "actualVariance", "allowedVariance" })
 	public static class FormattedDashboardEntry {
 		private String namespace, name, environment;
-		private Level level;
+		private Severity severity;
 		private Date started, stopped;
 		private Double actualVariance, allowedVariance;
 		public String getNamespace() {
@@ -129,11 +130,15 @@ public class FormattedDashboard {
 		public void setName(String name) {
 			this.name = name;
 		}
-		public Level getLevel() {
-			return level;
+		/**
+		 * Legacy reasons
+		 */
+		@XmlElement(name = "level")
+		public Severity getSeverity() {
+			return severity;
 		}
-		public void setLevel(Level level) {
-			this.level = level;
+		public void setSeverity(Severity level) {
+			this.severity = level;
 		}
 		public Date getStarted() {
 			return started;

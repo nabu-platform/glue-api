@@ -7,7 +7,7 @@ import java.util.Date;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
-import be.nabu.glue.api.runs.Validation;
+import be.nabu.glue.api.runs.GlueValidation;
 
 public class SimpleOutputFormatter implements OutputFormatter {
 
@@ -39,7 +39,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	}
 
 	@Override
-	public void validated(Validation...validations) {
+	public void validated(GlueValidation...validations) {
 		if (!"true".equals(System.getProperty("hideValidation", "true"))) {
 			print((Object[]) validations);
 		}
