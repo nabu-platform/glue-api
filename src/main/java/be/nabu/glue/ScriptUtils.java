@@ -12,9 +12,17 @@ import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.ParameterDescription;
 import be.nabu.glue.api.Script;
+import be.nabu.glue.api.ScriptRepository;
 import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
+	
+	public static ScriptRepository getRoot(ScriptRepository repository) {
+		while (repository.getParent() != null) {
+			repository = repository.getParent();
+		}
+		return repository;
+	}
 	
 	public static Executor getExecutor(ExecutorGroup group, String id) {
 		for (Executor child : group.getChildren()) {
