@@ -8,5 +8,6 @@ public interface ParameterDescription {
 	public String getDescription();
 	public String getDefaultValue();
 	public List<?> getEnumerations();
+	public boolean isList();
 	public boolean isVarargs();
 }

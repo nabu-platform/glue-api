@@ -55,7 +55,14 @@ public class ScriptUtils {
 	}
 	
 	public static List<ParameterDescription> getInputs(Script script) throws ParseException, IOException {
-		return getInputs(script.getRoot(), Boolean.parseBoolean(System.getProperty("recursive.inputs", "true")));
+		List<ParameterDescription> inputs = getInputs(script.getRoot(), Boolean.parseBoolean(System.getProperty("recursive.inputs", "true")));
+		// if the last of the inputs is an explicit array, set the varargs boolean
+		if (!inputs.isEmpty()) {
+			if (inputs.get(inputs.size() - 1).isList()) {
+				((SimpleParameterDescription) inputs.get(inputs.size() - 1)).setVarargs(true);
+			}
+		}
+		return inputs;
 	}
 	
 	public static List<ParameterDescription> getInputs(ExecutorGroup group, boolean recursive) throws ParseException, IOException {
@@ -73,12 +80,13 @@ public class ScriptUtils {
 						if (assignmentExecutor.getContext().getAnnotations() != null && assignmentExecutor.getContext().getAnnotations().containsKey("enumeration")) {
 							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
 						}
-						parameters.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType(), false, enumerations == null ? new String[0] : enumerations));
+						parameters.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType(), false, enumerations == null ? new String[0] : enumerations)
+								.setList(assignmentExecutor.isList()));
 					}
 				}
 			}
 			else if (executor instanceof ExecutorGroup && recursive) {
-				for (ParameterDescription childDescription : getInputs((ExecutorGroup) executor, recursive)) {
+				for (ParameterDescription childDescription : getParameters((ExecutorGroup) executor, recursive, inputOnly)) {
 					if (!parameters.containsKey(childDescription.getName())) {
 						parameters.put(childDescription.getName(), childDescription);
 					}
@@ -98,7 +106,8 @@ public class ScriptUtils {
 			if (executor instanceof AssignmentExecutor) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null) {
-					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType()));
+					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType())
+						.setList(assignmentExecutor.isList()));
 				}
 			}
 			if (executor instanceof ExecutorGroup) {
