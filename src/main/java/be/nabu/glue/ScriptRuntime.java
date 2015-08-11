@@ -50,11 +50,23 @@ public class ScriptRuntime implements Runnable {
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 	private PermissionValidator permissionValidator;
 
+	public ScriptRuntime(Script script, ExecutionContext context, Map<String, Object> input) {
+		this.script = script;
+		this.environment = context.getExecutionEnvironment();
+		this.debug = context.isDebug();
+		this.executionContext = context;
+		if (input != null) {
+			for (String key : input.keySet()) {
+				executionContext.getPipeline().put(key, input.get(key));
+			}
+		}
+	}
+	
 	public ScriptRuntime(Script script, ExecutionEnvironment environment, boolean debug, Map<String, Object> input) {
 		this.script = script;
 		this.environment = environment;
 		this.debug = debug;
-		executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
+		this.executionContext = new SimpleExecutionContext(environment, getLabelEvaluator(), debug);
 		if (input != null) {
 			for (String key : input.keySet()) {
 				executionContext.getPipeline().put(key, input.get(key));
