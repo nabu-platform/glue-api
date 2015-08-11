@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
 
+import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
@@ -13,6 +14,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 
 	private Writer writer;
 	private boolean addLineFeeds;
+	private boolean replaceVariables = Boolean.parseBoolean(System.getProperty("output.variables", "true"));
 
 	public SimpleOutputFormatter(Writer writer) {
 		this(writer, true);
@@ -50,7 +52,14 @@ public class SimpleOutputFormatter implements OutputFormatter {
 		if (messages != null) {
 			for (Object message : messages) {
 				try {
-					writer.append(message == null ? "null" : message.toString());
+					String content = message == null ? "null" : message.toString();
+					if (replaceVariables) {
+						ScriptRuntime runtime = ScriptRuntime.getRuntime();
+						if (runtime != null && runtime.getExecutionContext() != null && runtime.getScript() != null && runtime.getScript().getParser() != null) {
+							content = runtime.getScript().getParser().substitute(content, runtime.getExecutionContext(), true);
+						}
+					}
+					writer.append(content);
 					if (addLineFeeds) {
 						writer.append(System.getProperty("line.separator"));
 					}
