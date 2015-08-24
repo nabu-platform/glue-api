@@ -27,6 +27,11 @@ public class ForkedExecutionContext implements ExecutionContext {
 		this.pipeline = localPipeline ? new HashMap<String, Object>(parent.getPipeline()) : parent.getPipeline();
 	}
 	
+	public ForkedExecutionContext(ExecutionContext parent, Map<String, Object> pipeline) {
+		this.parent = parent;
+		this.pipeline = pipeline;
+	}
+	
 	@Override
 	public ExecutionEnvironment getExecutionEnvironment() {
 		return parent.getExecutionEnvironment();
