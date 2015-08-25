@@ -80,4 +80,9 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	public void end(Script script, Date started, Date stopped, Exception exception) {
 		// do nothing
 	}
+
+	@Override
+	public boolean shouldExecute(Executor executor) {
+		return true;
+	}
 }

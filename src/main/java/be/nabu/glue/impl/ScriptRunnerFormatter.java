@@ -84,4 +84,9 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 	public OutputFormatter getParent() {
 		return parent;
 	}
+
+	@Override
+	public boolean shouldExecute(Executor executor) {
+		return true;
+	}
 }

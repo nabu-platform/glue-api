@@ -11,4 +11,5 @@ public interface OutputFormatter {
 	public void validated(GlueValidation...validations);
 	public void print(Object...messages);
 	public void end(Script script, Date started, Date stopped, Exception exception);
+	public boolean shouldExecute(Executor executor);
 }
