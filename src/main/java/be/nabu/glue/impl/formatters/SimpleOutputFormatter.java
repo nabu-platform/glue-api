@@ -15,6 +15,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	private Writer writer;
 	private boolean addLineFeeds;
 	private boolean replaceVariables = Boolean.parseBoolean(System.getProperty("output.variables", "true"));
+	private OutputFormatter parent;
 
 	public SimpleOutputFormatter(Writer writer) {
 		this(writer, true);
@@ -32,12 +33,16 @@ public class SimpleOutputFormatter implements OutputFormatter {
 
 	@Override
 	public void before(Executor executor) {
-		// do nothing
+		if (parent != null) {
+			parent.before(executor);
+		}
 	}
 
 	@Override
 	public void after(Executor executor) {
-		// do nothing		
+		if (parent != null) {
+			parent.after(executor);
+		}		
 	}
 
 	@Override
@@ -83,6 +88,14 @@ public class SimpleOutputFormatter implements OutputFormatter {
 
 	@Override
 	public boolean shouldExecute(Executor executor) {
-		return true;
+		return parent == null || parent.shouldExecute(executor);
+	}
+
+	public OutputFormatter getParent() {
+		return parent;
+	}
+
+	public void setParent(OutputFormatter parent) {
+		this.parent = parent;
 	}
 }
