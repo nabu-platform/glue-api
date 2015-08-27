@@ -31,14 +31,18 @@ public class MultipleRepository implements ScriptRepository {
 
 	private Map<String, Script> getScriptsBySimpleName() {
 		if (scriptsBySimpleName == null) {
-			loadScripts();
+			synchronized(this) {
+				if (scriptsBySimpleName == null) {
+					loadScripts();
+				}
+			}
 		}
 		return scriptsBySimpleName;
 	}
 
-	private synchronized void loadScripts() {
-		scriptsBySimpleName = new HashMap<String, Script>();
-		scriptsByFullName = new HashMap<String, Script>();
+	private void loadScripts() {
+		Map<String, Script> scriptsBySimpleName = new HashMap<String, Script>();
+		Map<String, Script> scriptsByFullName = new HashMap<String, Script>();
 		for (ScriptRepository repository : repositories) {
 			for (Script script : repository) {
 				if (!scriptsByFullName.containsKey(ScriptUtils.getFullName(script))) {
@@ -49,11 +53,17 @@ public class MultipleRepository implements ScriptRepository {
 				}
 			}
 		}
+		this.scriptsBySimpleName = scriptsBySimpleName;
+		this.scriptsByFullName = scriptsByFullName;
 	}
 	
 	private Map<String, Script> getScriptsByFullName() {
 		if (scriptsByFullName == null) {
-			loadScripts();
+			synchronized(this) {
+				if (scriptsByFullName == null) {
+					loadScripts();
+				}
+			}
 		}
 		return scriptsByFullName;
 	}

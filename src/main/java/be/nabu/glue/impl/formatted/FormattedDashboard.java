@@ -112,7 +112,7 @@ public class FormattedDashboard {
 		this.stopped = stopped;
 	}
 
-	@XmlType(propOrder = { "namespace", "name", "environment", "level", "started", "stopped", "actualVariance", "allowedVariance" })
+	@XmlType(propOrder = { "namespace", "name", "environment", "severity", "started", "stopped", "actualVariance", "allowedVariance" })
 	public static class FormattedDashboardEntry {
 		private String namespace, name, environment;
 		private Severity severity;

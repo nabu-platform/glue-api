@@ -20,7 +20,7 @@ import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "result")
-@XmlType(propOrder = { "level", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
+@XmlType(propOrder = { "severity", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
 public class FormattedScriptResult {
 	private List<FormattedValidation> validations;
 	private Severity severity;

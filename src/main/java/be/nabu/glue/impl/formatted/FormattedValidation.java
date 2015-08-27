@@ -13,7 +13,7 @@ import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "validation")
-@XmlType(propOrder = { "level", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack" })
+@XmlType(propOrder = { "severity", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack" })
 public class FormattedValidation {
 	
 	private Severity severity;
