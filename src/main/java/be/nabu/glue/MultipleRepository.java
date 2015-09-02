@@ -104,14 +104,18 @@ public class MultipleRepository implements ScriptRepository {
 	
 	public void add(ScriptRepository...repositories) {
 		this.repositories.addAll(Arrays.asList(repositories));
+		synchronized(this) {
+			loadScripts();
+		}
 	}
 
 	@Override
-	public synchronized void refresh() throws IOException {
-		scriptsBySimpleName = null;
-		scriptsByFullName = null;
+	public void refresh() throws IOException {
 		for (ScriptRepository repository : repositories) {
 			repository.refresh();
+		}
+		synchronized(this) {
+			loadScripts();
 		}
 	}
 }

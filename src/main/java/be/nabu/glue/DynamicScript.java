@@ -17,6 +17,8 @@ public class DynamicScript implements Script {
 	private ScriptRepository repository;
 	private ExecutorGroup root;
 	private Parser parser;
+	private Charset charset = Charset.defaultCharset();
+	private String name, namespace;
 
 	public DynamicScript(ScriptRepository repository, Parser parser) {
 		this.repository = repository;
@@ -35,12 +37,12 @@ public class DynamicScript implements Script {
 
 	@Override
 	public String getNamespace() {
-		return null;
+		return namespace;
 	}
 
 	@Override
 	public String getName() {
-		return "runtime$" + hashCode();
+		return name == null ? "runtime$" + hashCode() : name;
 	}
 
 	@Override
@@ -50,7 +52,7 @@ public class DynamicScript implements Script {
 
 	@Override
 	public Charset getCharset() {
-		return Charset.defaultCharset();
+		return charset;
 	}
 
 	@Override
@@ -70,5 +72,17 @@ public class DynamicScript implements Script {
 
 	public void setRoot(ExecutorGroup root) {
 		this.root = root;
+	}
+
+	public void setCharset(Charset charset) {
+		this.charset = charset;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setNamespace(String namespace) {
+		this.namespace = namespace;
 	}
 }
