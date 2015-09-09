@@ -3,13 +3,10 @@ package be.nabu.glue;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import be.nabu.glue.annotations.GlueMethod;
-import be.nabu.glue.annotations.GlueParam;
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
@@ -20,8 +17,6 @@ import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
 	
-	public static final String SEQUENCES = "sequences";
-
 	public static ScriptRepository getRoot(ScriptRepository repository) {
 		while (repository.getParent() != null) {
 			repository = repository.getParent();
@@ -128,20 +123,5 @@ public class ScriptUtils {
 			name = script.getNamespace() + "." + name;
 		}
 		return name;
-	}
-	
-	@SuppressWarnings("unchecked")
-	@GlueMethod(description = "Generates a sequential number guaranteed to be unique for the given named sequence during a single script run")
-	public static long sequence(@GlueParam(name = "name", description = "You can have multiple sequences at runtime", defaultValue = "default") String name) {
-		Map<String, Object> context = ScriptRuntime.getRuntime().getContext();
-		if (!context.containsKey(SEQUENCES)) {
-			context.put(SEQUENCES, new HashMap<String, Integer>());
-		}
-		Map<String, Integer> sequences = (Map<String, Integer>) context.get(SEQUENCES);
-		synchronized(sequences) {
-			Integer sequence = sequences.containsKey(name) ? sequences.get(name) + 1 : 1;
-			sequences.put(name, sequence);
-			return sequence;
-		}
 	}
 }
