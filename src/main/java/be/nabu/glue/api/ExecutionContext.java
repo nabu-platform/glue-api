@@ -2,6 +2,7 @@ package be.nabu.glue.api;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,4 +56,5 @@ public interface ExecutionContext {
 	 */
 	public int getBreakCount();
 	public void incrementBreakCount(int breakCount);
+	public Principal getPrincipal();
 }

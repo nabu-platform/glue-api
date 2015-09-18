@@ -2,6 +2,7 @@ package be.nabu.glue.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -105,5 +106,10 @@ public class ForkedExecutionContext implements ExecutionContext {
 	@Override
 	public void incrementBreakCount(int breakCount) {
 		this.breakCount += breakCount;
+	}
+
+	@Override
+	public Principal getPrincipal() {
+		return parent.getPrincipal();
 	}
 }

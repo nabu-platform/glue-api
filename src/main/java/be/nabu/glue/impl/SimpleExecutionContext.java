@@ -2,6 +2,7 @@ package be.nabu.glue.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -23,6 +24,8 @@ public class SimpleExecutionContext implements ExecutionContext {
 	private Set<String> breakpoints = new HashSet<String>();
 	private LabelEvaluator labelEvaluator;
 	private int breakCount;
+	private Principal principal;
+	private boolean outputCurrentLine = true;
 
 	public SimpleExecutionContext(ExecutionEnvironment executionEnvironment, LabelEvaluator labelEvaluator, boolean debug) {
 		this.executionEnvironment = executionEnvironment;
@@ -80,7 +83,7 @@ public class SimpleExecutionContext implements ExecutionContext {
 
 	@Override
 	public void setCurrent(Executor current) {
-		if (debug && current != null) {
+		if (outputCurrentLine && debug && current != null) {
 			ScriptRuntime.getRuntime().getFormatter().print("[" + ScriptRuntime.getRuntime().getScript().getName() + "] Line " + (current.getContext().getLineNumber() + 1) + ": " + current.getContext().getLine());
 		}
 		this.current = current;
@@ -146,5 +149,21 @@ public class SimpleExecutionContext implements ExecutionContext {
 	@Override
 	public void incrementBreakCount(int breakCount) {
 		this.breakCount += breakCount;
+	}
+
+	@Override
+	public Principal getPrincipal() {
+		return principal;
+	}
+	public void setPrincipal(Principal principal) {
+		this.principal = principal;
+	}
+
+	public boolean isOutputCurrentLine() {
+		return outputCurrentLine;
+	}
+
+	public void setOutputCurrentLine(boolean outputCurrentLine) {
+		this.outputCurrentLine = outputCurrentLine;
 	}
 }
