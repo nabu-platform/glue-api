@@ -24,6 +24,8 @@ import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
 	
+	private static Date buildTime;
+	
 	public static ScriptRepository getRoot(ScriptRepository repository) {
 		while (repository.getParent() != null) {
 			repository = repository.getParent();
@@ -133,40 +135,50 @@ public class ScriptUtils {
 	}
 	
 	public static Date getBuildTime() {
-		try {
-			Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("META-INF/MANIFEST.MF");
-			while (resources.hasMoreElements()) {
-				URL url = resources.nextElement();
-				if (url.getPath().matches(".*(^|/)glue-api-[^/!]+\\.jar.*")) {
-					InputStream input = new BufferedInputStream(url.openStream());
+		if (buildTime == null) {
+			synchronized(ScriptUtils.class) {
+				if (buildTime == null) {
 					try {
-						int read = 0;
-						ByteArrayOutputStream output = new ByteArrayOutputStream();
-						byte [] buffer = new byte[4096];
-						while ((read = input.read(buffer)) > 0) {
-							output.write(buffer, 0, read);
-						}
-						String content = new String(output.toByteArray(), "UTF-8");
-						for (String line : content.split("[\r\n]+")) {
-							String [] parts = line.trim().split(":");
-							if (parts.length == 2 && "Build-Time".equalsIgnoreCase(parts[0].trim())) {
-								SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-HHmm");
-								return formatter.parse(parts[1].trim());
+						Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("META-INF/MANIFEST.MF");
+						while (resources.hasMoreElements()) {
+							URL url = resources.nextElement();
+							if (url.getPath().matches(".*(^|/)glue-api-[^/!]+\\.jar.*")) {
+								InputStream input = new BufferedInputStream(url.openStream());
+								try {
+									int read = 0;
+									ByteArrayOutputStream output = new ByteArrayOutputStream();
+									byte [] buffer = new byte[4096];
+									while ((read = input.read(buffer)) > 0) {
+										output.write(buffer, 0, read);
+									}
+									String content = new String(output.toByteArray(), "UTF-8");
+									for (String line : content.split("[\r\n]+")) {
+										String [] parts = line.trim().split(":");
+										if (parts.length == 2 && "Build-Time".equalsIgnoreCase(parts[0].trim())) {
+											SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-HHmm");
+											buildTime = formatter.parse(parts[1].trim());
+											break;
+										}
+									}
+								}
+								finally {
+									input.close();
+								}
+							}
+							if (buildTime == null) {
+								buildTime = new Date(0);
 							}
 						}
 					}
-					finally {
-						input.close();
+					catch (ParseException e) {
+						buildTime = new Date(0);
+					}
+					catch (IOException e) {
+						buildTime = new Date(0);
 					}
 				}
 			}
-			return null;
 		}
-		catch (ParseException e) {
-			return null;
-		}
-		catch (IOException e) {
-			return null;
-		}
+		return buildTime;
 	}
 }
