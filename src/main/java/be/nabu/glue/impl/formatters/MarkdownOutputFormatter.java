@@ -33,7 +33,7 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 		if (root == null) {
 			root = script;
 			if (includeBuildTimestamp) {
-				printBlock("@build " + ScriptUtils.getBuildTime());
+				printBlock("@build " + ScriptUtils.getBuildTime(), "");
 			}
 			try {
 				String title = script.getRoot().getContext().getAnnotations().get("title");
