@@ -26,7 +26,7 @@ public class FormattedValidation {
 		FormattedValidation formatted = new FormattedValidation();
 		formatted.setSeverity(validation.getSeverity());
 		formatted.setValidation(validation.getMessage());
-		formatted.setMessage(validation.getMessage());
+		formatted.setMessage(validation.getDescription());
 		List<String> callStack = new ArrayList<String>();
 		for (CallLocation item : validation.getContext()) {
 			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
