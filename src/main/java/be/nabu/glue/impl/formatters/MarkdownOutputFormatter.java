@@ -7,6 +7,7 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.util.Date;
 
+import be.nabu.glue.ScriptUtils;
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
@@ -21,6 +22,7 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	private int scriptDepth = 0;
 	private boolean inValidation = false, inBlock = false;
 	private String validationGroup;
+	private boolean includeBuildTimestamp = Boolean.parseBoolean(System.getProperty("glue.include-build", "true"));
 	
 	public MarkdownOutputFormatter(Writer writer) {
 		super(writer);
@@ -30,6 +32,9 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	public void start(Script script) {
 		if (root == null) {
 			root = script;
+			if (includeBuildTimestamp) {
+				printBlock("@build " + ScriptUtils.getBuildTime());
+			}
 			try {
 				String title = script.getRoot().getContext().getAnnotations().get("title");
 				if (title == null) {

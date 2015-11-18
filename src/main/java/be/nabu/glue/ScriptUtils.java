@@ -1,8 +1,15 @@
 package be.nabu.glue;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,5 +130,43 @@ public class ScriptUtils {
 			name = script.getNamespace() + "." + name;
 		}
 		return name;
+	}
+	
+	public static Date getBuildTime() {
+		try {
+			Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources("META-INF/MANIFEST.MF");
+			while (resources.hasMoreElements()) {
+				URL url = resources.nextElement();
+				if (url.getPath().matches(".*(^|/)glue-api-[^/!]+\\.jar.*")) {
+					InputStream input = new BufferedInputStream(url.openStream());
+					try {
+						int read = 0;
+						ByteArrayOutputStream output = new ByteArrayOutputStream();
+						byte [] buffer = new byte[4096];
+						while ((read = input.read(buffer)) > 0) {
+							output.write(buffer, 0, read);
+						}
+						String content = new String(output.toByteArray(), "UTF-8");
+						for (String line : content.split("[\r\n]+")) {
+							String [] parts = line.trim().split(":");
+							if (parts.length == 2 && "Build-Time".equalsIgnoreCase(parts[0].trim())) {
+								SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd-HHmm");
+								return formatter.parse(parts[1].trim());
+							}
+						}
+					}
+					finally {
+						input.close();
+					}
+				}
+			}
+			return null;
+		}
+		catch (ParseException e) {
+			return null;
+		}
+		catch (IOException e) {
+			return null;
+		}
 	}
 }
