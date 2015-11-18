@@ -7,7 +7,8 @@ import be.nabu.glue.api.ParameterDescription;
 
 public class SimpleParameterDescription implements ParameterDescription {
 
-	private String name, description, type, defaultValue;
+	private String name, description, type;
+	private Object defaultValue;
 	private boolean isVarargs, isList;
 	private List<?> enumerations;
 	
@@ -56,7 +57,7 @@ public class SimpleParameterDescription implements ParameterDescription {
 	}
 
 	@Override
-	public String getDefaultValue() {
+	public Object getDefaultValue() {
 		return defaultValue;
 	}
 
@@ -75,7 +76,7 @@ public class SimpleParameterDescription implements ParameterDescription {
 		return this;
 	}
 
-	public SimpleParameterDescription setDefaultValue(String defaultValue) {
+	public SimpleParameterDescription setDefaultValue(Object defaultValue) {
 		this.defaultValue = defaultValue;
 		return this;
 	}
