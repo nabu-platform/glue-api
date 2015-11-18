@@ -99,5 +99,10 @@ public class SimpleParameterDescription implements ParameterDescription {
 		this.isList = isList;
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 
 }

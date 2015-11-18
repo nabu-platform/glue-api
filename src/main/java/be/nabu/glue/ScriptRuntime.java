@@ -329,4 +329,8 @@ public class ScriptRuntime implements Runnable {
 	public void setPermissionValidator(PermissionValidator permissionValidator) {
 		this.permissionValidator = permissionValidator;
 	}
+
+	public void setExecutionContext(ExecutionContext executionContext) {
+		this.executionContext = executionContext;
+	}
 }
