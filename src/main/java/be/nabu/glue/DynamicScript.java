@@ -2,6 +2,7 @@ package be.nabu.glue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Parser;
+import be.nabu.glue.api.ParserProvider;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptRepository;
 
@@ -23,6 +25,12 @@ public class DynamicScript implements Script {
 	public DynamicScript(ScriptRepository repository, Parser parser) {
 		this.repository = repository;
 		this.parser = parser;
+	}
+	
+	public DynamicScript(ScriptRepository repository, ParserProvider parserProvider, String content) throws IOException, ParseException {
+		this.repository = repository;
+		this.parser = parserProvider.newParser(repository, getName() + ".glue"); 
+		this.root = parser.parse(new StringReader(content));
 	}
 	
 	@Override
