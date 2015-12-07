@@ -27,10 +27,14 @@ public class DynamicScript implements Script {
 		this.parser = parser;
 	}
 	
-	public DynamicScript(ScriptRepository repository, ParserProvider parserProvider, String content) throws IOException, ParseException {
+	public DynamicScript(ScriptRepository repository, Parser parser, String content) throws IOException, ParseException {
 		this.repository = repository;
-		this.parser = parserProvider.newParser(repository, getName() + ".glue"); 
+		this.parser = parser;
 		this.root = parser.parse(new StringReader(content));
+	}
+	
+	public DynamicScript(ScriptRepository repository, ParserProvider parserProvider, String content) throws IOException, ParseException {
+		this(repository, parserProvider.newParser(repository, "dynamic.glue"), content);
 	}
 	
 	@Override
