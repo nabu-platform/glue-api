@@ -178,6 +178,9 @@ public class MatrixScriptRepository implements ScriptRepository {
 						builder.append("\n");
 					}
 					
+					// add empty line to signal that the above metadata is definitely at the script level
+					builder.append("\n");
+					
 					// write the actual script call
 					builder.append(ScriptUtils.getFullName(script)).append("(");
 					boolean first = true;
