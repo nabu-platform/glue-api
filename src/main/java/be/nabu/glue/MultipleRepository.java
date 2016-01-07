@@ -118,4 +118,12 @@ public class MultipleRepository implements ScriptRepository {
 			loadScripts();
 		}
 	}
+	
+	public void remove(ScriptRepository...repository) {
+		if (this.repositories.removeAll(Arrays.asList(repositories))) {
+			synchronized(this) {
+				loadScripts();
+			}	
+		}
+	}
 }
