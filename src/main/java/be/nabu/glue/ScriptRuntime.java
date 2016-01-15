@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,8 +23,12 @@ import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.PermissionValidator;
 import be.nabu.glue.api.Script;
+import be.nabu.glue.api.StringSubstituter;
+import be.nabu.glue.api.StringSubstituterProvider;
 import be.nabu.glue.api.Transactionable;
 import be.nabu.glue.impl.ForkedExecutionContext;
+import be.nabu.glue.impl.MultipleSubstituter;
+import be.nabu.glue.impl.ParserSubstituterProvider;
 import be.nabu.glue.impl.SimpleExecutionContext;
 import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.libs.converter.ConverterFactory;
@@ -49,6 +54,7 @@ public class ScriptRuntime implements Runnable {
 	private boolean aborted = false;
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 	private PermissionValidator permissionValidator;
+	private List<StringSubstituterProvider> substituterProviders;
 
 	public ScriptRuntime(Script script, ExecutionContext context, Map<String, Object> input) {
 		this.script = script;
@@ -332,5 +338,41 @@ public class ScriptRuntime implements Runnable {
 
 	public void setExecutionContext(ExecutionContext executionContext) {
 		this.executionContext = executionContext;
+	}
+
+	public void addSubstituterProviders(Collection<StringSubstituterProvider> providers) {
+		if (substituterProviders == null) {
+			substituterProviders = new ArrayList<StringSubstituterProvider>();
+			if (parent != null) {
+				substituterProviders.addAll(parent.getSubstituterProviders());
+			}
+		}
+		substituterProviders.addAll(providers);
+	}
+	
+	private List<StringSubstituterProvider> getSubstituterProviders() {
+		if (substituterProviders == null && parent != null) {
+			return parent.getSubstituterProviders();
+		}
+		else if (substituterProviders == null) {
+			substituterProviders = new ArrayList<StringSubstituterProvider>();
+		}
+		return substituterProviders;
+	}
+	
+	public StringSubstituter getSubstituter() {
+		List<StringSubstituter> substituters = new ArrayList<StringSubstituter>();
+		for (StringSubstituterProvider provider : getSubstituterProviders()) {
+			StringSubstituter substituter = provider.getSubstituter(this);
+			if (substituter != null) {
+				substituters.add(substituter);
+			}
+		}
+		// for legacy reasons this always has to be there, have it last so you can generate code to execute
+		StringSubstituter scriptSubstituter = new ParserSubstituterProvider().getSubstituter(this);
+		if (scriptSubstituter != null) {
+			substituters.add(scriptSubstituter);
+		}
+		return new MultipleSubstituter(substituters);
 	}
 }

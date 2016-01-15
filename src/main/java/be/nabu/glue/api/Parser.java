@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.text.ParseException;
 
-public interface Parser {
+public interface Parser extends StringSubstituter {
 	public ExecutorGroup parse(Reader content) throws IOException, ParseException;
-	public String substitute(String value, ExecutionContext context, boolean allowNull);
 }

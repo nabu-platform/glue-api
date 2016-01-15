@@ -61,7 +61,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 					if (replaceVariables) {
 						ScriptRuntime runtime = ScriptRuntime.getRuntime();
 						if (runtime != null && runtime.getExecutionContext() != null && runtime.getScript() != null && runtime.getScript().getParser() != null) {
-							content = runtime.getScript().getParser().substitute(content, runtime.getExecutionContext(), true);
+							content = runtime.getSubstituter().substitute(content, runtime.getExecutionContext(), true);
 						}
 					}
 					writer.append(content);
