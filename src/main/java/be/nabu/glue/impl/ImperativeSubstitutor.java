@@ -44,7 +44,11 @@ public class ImperativeSubstitutor implements StringSubstituter {
 					}
 				}
 			}
-			target = target.replaceAll(Pattern.quote(matcher.group() + query + "}"), "\\${" + Matcher.quoteReplacement(methodSignature.replace("${value}", query)) + "}");
+			if (query == null) {
+				throw new IllegalArgumentException("The opening " + identifier + "{ is missing an end tag");
+			}
+			// quote the string markers in the replacement
+			target = target.replaceAll(Pattern.quote(matcher.group() + query + "}"), "\\${" + Matcher.quoteReplacement(methodSignature.replace("${value}", query.replace("'", "\'").replace("\"", "\\\""))) + "}");
 		}
 		return target;
 	}
