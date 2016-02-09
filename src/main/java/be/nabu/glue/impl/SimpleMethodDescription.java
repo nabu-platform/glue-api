@@ -58,4 +58,11 @@ public class SimpleMethodDescription implements MethodDescription {
 	public void setNamedParametersAllowed(boolean isNamedParametersAllowed) {
 		this.isNamedParametersAllowed = isNamedParametersAllowed;
 	}
+	
+	@Override
+	public String toString() {
+		String content = namespace == null ? "" : namespace + ".";
+		content += name;
+		return description == null ? content : content + ": " + description;
+	}
 }

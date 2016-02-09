@@ -26,7 +26,7 @@ public class MultipleRepository implements ScriptRepository {
 	
 	@Override
 	public Iterator<Script> iterator() {
-		return new ArrayList<Script>(getScriptsBySimpleName().values()).iterator();
+		return new ArrayList<Script>(getScriptsByFullName().values()).iterator();
 	}
 
 	private Map<String, Script> getScriptsBySimpleName() {
