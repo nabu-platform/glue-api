@@ -37,9 +37,9 @@ public class ValidatingOutputFormatter implements OutputFormatter {
 	}
 
 	@Override
-	public void before(Executor executor) {
-		// first trigger parent, it might perform some operation like inject variables
-		parent.before(executor);
+	public void after(Executor executor) {
+		// first trigger parent, it might perform some operation that influences the value
+		parent.after(executor);
 		// then validate the result
 		if (executor instanceof AssignmentExecutor && ((AssignmentExecutor) executor).getVariableName() != null && executor.getContext() != null && executor.getContext().getAnnotations() != null) {
 			String name = ((AssignmentExecutor) executor).getVariableName();
@@ -47,21 +47,42 @@ public class ValidatingOutputFormatter implements OutputFormatter {
 				Object value = ScriptRuntime.getRuntime().getExecutionContext().getPipeline().get(name);
 				Map<String, String> annotations = executor.getContext().getAnnotations();
 				if (annotations.containsKey("pattern")) {
-					pattern(value, annotations.get("pattern"));
+					if (value != null) {
+						pattern(value, annotations.get("pattern"));
+					}
 				}
 				if (annotations.containsKey("enumeration")) {
-					enumeration(value, annotations.get("enumeration"));
+					if (value != null) {
+						enumeration(value, annotations.get("enumeration"));
+					}
 				}
-				if (annotations.containsKey("notNull") && value == null) {
-					throw new IllegalArgumentException("The value is null but it shouldn't be");
+				if (annotations.containsKey("null")) {
+					nullable(value, annotations.get("null"));
 				}
 				if (annotations.containsKey("max")) {
-					max(value, annotations.get("max"));
+					if (value != null) {
+						max(value, annotations.get("max"));
+					}
 				}
-				if (annotations.containsKey("max")) {
-					min(value, annotations.get("min"));
+				if (annotations.containsKey("min")) {
+					if (value != null) {
+						min(value, annotations.get("min"));
+					}
 				}
 			}
+		}
+	}
+	
+	private void nullable(Object value, String nullable) {
+		if (nullable == null || nullable.trim().isEmpty()) {
+			nullable = "true";
+		}
+		boolean isNullable = Boolean.parseBoolean(nullable);
+		if (value == null && !isNullable) {
+			throw new IllegalArgumentException("Null is not allowed");
+		}
+		else if (value != null && isNullable) {
+			throw new IllegalArgumentException("The value must be null");
 		}
 	}
 	
@@ -169,8 +190,8 @@ public class ValidatingOutputFormatter implements OutputFormatter {
 	}
 
 	@Override
-	public void after(Executor executor) {
-		parent.after(executor);
+	public void before(Executor executor) {
+		parent.before(executor);
 	}
 
 	@Override
