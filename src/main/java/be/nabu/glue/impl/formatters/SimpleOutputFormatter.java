@@ -2,6 +2,7 @@ package be.nabu.glue.impl.formatters;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Date;
 
 import be.nabu.glue.ScriptRuntime;
@@ -57,6 +58,9 @@ public class SimpleOutputFormatter implements OutputFormatter {
 		if (messages != null) {
 			for (Object message : messages) {
 				try {
+					if (message instanceof Object[]) {
+						message = Arrays.asList((Object[]) message);
+					}
 					String content = message == null ? "null" : message.toString();
 					if (replaceVariables) {
 						ScriptRuntime runtime = ScriptRuntime.getRuntime();
