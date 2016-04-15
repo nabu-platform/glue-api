@@ -1,6 +1,8 @@
 package be.nabu.glue.impl.formatters;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Date;
@@ -15,7 +17,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 
 	private Writer writer;
 	private boolean addLineFeeds;
-	private boolean replaceVariables = Boolean.parseBoolean(System.getProperty("output.variables", "true"));
+	private boolean replaceVariables;
 	private OutputFormatter parent;
 
 	public SimpleOutputFormatter(Writer writer) {
@@ -23,8 +25,13 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	}
 	
 	public SimpleOutputFormatter(Writer writer, boolean addLineFeeds) {
+		this(writer, addLineFeeds, Boolean.parseBoolean(System.getProperty("output.variables", "true")));
+	}
+	
+	public SimpleOutputFormatter(Writer writer, boolean addLineFeeds, boolean replaceVariables) {
 		this.writer = writer;
 		this.addLineFeeds = addLineFeeds;
+		this.replaceVariables = replaceVariables;
 	}
 	
 	@Override
@@ -60,6 +67,13 @@ public class SimpleOutputFormatter implements OutputFormatter {
 				try {
 					if (message instanceof Object[]) {
 						message = Arrays.asList((Object[]) message);
+					}
+					else if (message instanceof Throwable) {
+						StringWriter writer = new StringWriter();
+						PrintWriter printer = new PrintWriter(writer);
+						((Throwable) message).printStackTrace(printer);
+						printer.flush();
+						message = writer.toString();
 					}
 					String content = message == null ? "null" : message.toString();
 					if (replaceVariables) {
@@ -102,4 +116,5 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	public void setParent(OutputFormatter parent) {
 		this.parent = parent;
 	}
+	
 }
