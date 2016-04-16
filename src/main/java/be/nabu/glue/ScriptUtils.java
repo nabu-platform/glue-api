@@ -106,13 +106,17 @@ public class ScriptUtils {
 	}
 	
 	public static List<ParameterDescription> getOutputs(Script script) throws ParseException, IOException {
-		return new ArrayList<ParameterDescription>(getOutputs(script.getRoot()).values());
+		return getOutputs(script, null);
 	}
 	
-	private static Map<String, ParameterDescription> getOutputs(ExecutorGroup group) {
+	public static List<ParameterDescription> getOutputs(Script script, ExecutorFilter filter) throws ParseException, IOException {
+		return new ArrayList<ParameterDescription>(getOutputs(script.getRoot(), filter).values());
+	}
+	
+	private static Map<String, ParameterDescription> getOutputs(ExecutorGroup group, ExecutorFilter filter) {
 		Map<String, ParameterDescription> outputs = new LinkedHashMap<String, ParameterDescription>();
 		for (Executor executor : group.getChildren()) {
-			if (executor instanceof AssignmentExecutor) {
+			if (executor instanceof AssignmentExecutor && (filter == null || filter.accept(executor))) {
 				AssignmentExecutor assignmentExecutor = (AssignmentExecutor) executor;
 				if (assignmentExecutor.getVariableName() != null) {
 					outputs.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType())
@@ -120,7 +124,7 @@ public class ScriptUtils {
 				}
 			}
 			if (executor instanceof ExecutorGroup) {
-				outputs.putAll(getOutputs((ExecutorGroup) executor));
+				outputs.putAll(getOutputs((ExecutorGroup) executor, null));
 			}
 		}
 		return outputs;
@@ -180,5 +184,9 @@ public class ScriptUtils {
 			}
 		}
 		return buildTime;
+	}
+	
+	public static interface ExecutorFilter {
+		public boolean accept(Executor executor);
 	}
 }
