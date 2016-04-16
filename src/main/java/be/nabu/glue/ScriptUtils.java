@@ -124,7 +124,7 @@ public class ScriptUtils {
 				}
 			}
 			if (executor instanceof ExecutorGroup) {
-				outputs.putAll(getOutputs((ExecutorGroup) executor, null));
+				outputs.putAll(getOutputs((ExecutorGroup) executor, filter));
 			}
 		}
 		return outputs;
