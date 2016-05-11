@@ -18,11 +18,17 @@ public class VirtualScript implements Script {
 	private Script parent;
 	private ExecutorGroup root;
 	private String source;
+	private Parser parser;
 
-	public VirtualScript(Script parent, String source) throws IOException, ParseException {
+	public VirtualScript(Script parent, String source, Parser parser) throws IOException, ParseException {
+		this.parser = parser;
 		this.parent = parent;
 		this.source = source;
-		this.root = parent.getParser().parse(new StringReader(source));
+		this.root = parser.parse(new StringReader(source));
+	}
+	
+	public VirtualScript(Script parent, String source) throws IOException, ParseException {
+		this(parent, source, parent.getParser());
 	}
 	
 	@Override
@@ -52,7 +58,7 @@ public class VirtualScript implements Script {
 
 	@Override
 	public Parser getParser() {
-		return parent.getParser();
+		return parser;
 	}
 
 	@Override
