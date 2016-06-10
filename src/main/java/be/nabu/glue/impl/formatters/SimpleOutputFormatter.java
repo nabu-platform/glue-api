@@ -116,5 +116,13 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	public void setParent(OutputFormatter parent) {
 		this.parent = parent;
 	}
+
+	public boolean isReplaceVariables() {
+		return replaceVariables;
+	}
+
+	public void setReplaceVariables(boolean replaceVariables) {
+		this.replaceVariables = replaceVariables;
+	}
 	
 }
