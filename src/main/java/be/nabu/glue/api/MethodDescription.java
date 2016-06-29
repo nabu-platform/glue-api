@@ -9,4 +9,5 @@ public interface MethodDescription {
 	public List<ParameterDescription> getParameters();
 	public List<ParameterDescription> getReturnValues();
 	public boolean isNamedParametersAllowed();
+	public Double getVersion();
 }

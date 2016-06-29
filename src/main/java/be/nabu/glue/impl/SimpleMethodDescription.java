@@ -12,18 +12,24 @@ public class SimpleMethodDescription implements MethodDescription {
 	private List<ParameterDescription> parameters;
 	private List<ParameterDescription> returnValues;
 	private boolean isNamedParametersAllowed;
+	private Double version;
 
 	public SimpleMethodDescription(String namespace, String name, String description, List<ParameterDescription> parameters, List<ParameterDescription> returnValues) {
 		this(namespace, name, description, parameters, returnValues, false);
 	}
 	
 	public SimpleMethodDescription(String namespace, String name, String description, List<ParameterDescription> parameters, List<ParameterDescription> returnValues, boolean isNamedParametersAllowed) {
+		this(namespace, name, description, parameters, returnValues, isNamedParametersAllowed, null);
+	}
+	
+	public SimpleMethodDescription(String namespace, String name, String description, List<ParameterDescription> parameters, List<ParameterDescription> returnValues, boolean isNamedParametersAllowed, Double version) {
 		this.namespace = namespace;
 		this.name = name;
 		this.description = description;
 		this.parameters = parameters;
 		this.returnValues = returnValues;
 		this.isNamedParametersAllowed = isNamedParametersAllowed;
+		this.version = version;
 	}
 	
 	@Override
@@ -45,7 +51,7 @@ public class SimpleMethodDescription implements MethodDescription {
 	public List<ParameterDescription> getReturnValues() {
 		return returnValues;
 	}
-
+	
 	@Override
 	public String getNamespace() {
 		return namespace;
@@ -64,5 +70,10 @@ public class SimpleMethodDescription implements MethodDescription {
 		String content = namespace == null ? "" : namespace + ".";
 		content += name;
 		return description == null ? content : content + ": " + description;
+	}
+
+	@Override
+	public Double getVersion() {
+		return version;
 	}
 }

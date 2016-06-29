@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 public @interface GlueMethod {
 	public String description() default "";
 	public String returns() default "";
+	public double version() default -1;
 }
