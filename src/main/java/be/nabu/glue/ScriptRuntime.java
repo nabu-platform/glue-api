@@ -179,6 +179,10 @@ public class ScriptRuntime implements Runnable {
 		}
 	}
 
+	public ScriptRuntime fork(boolean localPipeline) {
+		return new ScriptRuntime(this, script, localPipeline);
+	}
+	
 	public ScriptRuntime fork(Script script) {
 		return new ScriptRuntime(this, script, false);
 	}
