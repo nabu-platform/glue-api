@@ -25,6 +25,7 @@ public class ForkedExecutionContext implements ExecutionContext {
 	
 	public ForkedExecutionContext(ExecutionContext parent, boolean localPipeline) {
 		this.parent = parent;
+		// TODO: this line can cause a concurrent modification exception when executing lambdas in parallel threads...
 		this.pipeline = localPipeline ? new HashMap<String, Object>(parent.getPipeline()) : parent.getPipeline();
 	}
 	
