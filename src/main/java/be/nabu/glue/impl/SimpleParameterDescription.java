@@ -23,6 +23,8 @@ public class SimpleParameterDescription implements ParameterDescription {
 		this.description = description;
 		this.type = type;
 		this.isVarargs = isVarargs;
+		// it can be a list without being varargs, but it can not be varargs without being a list
+		this.isList = isVarargs;
 		this.enumerations = Arrays.asList(enumerations);
 	}
 
