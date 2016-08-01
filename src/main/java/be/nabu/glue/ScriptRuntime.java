@@ -308,9 +308,17 @@ public class ScriptRuntime implements Runnable {
 	}
 
 	public boolean isAborted() {
-		return getRoot().aborted;
+		return aborted || getRoot().aborted;
 	}
-
+	
+	public void abort(boolean locally) {
+		if (locally) {
+			aborted = true;
+		}
+		else {
+			abort();
+		}
+	}
 	public void abort() {
 		getRoot().aborted = true;
 	}
