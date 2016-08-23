@@ -55,7 +55,10 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 		for (Object key : getProperties().keySet()) {
 			String propertyName = key.toString().trim().toLowerCase();
 			int index = propertyName.indexOf('.');
-			environments.add(index < 0 ? propertyName : propertyName.substring(0, index));
+			String name = index < 0 ? propertyName : propertyName.substring(0, index);
+			if (!"*".equals(name)) {
+				environments.add(name);
+			}
 		}
 		return environments;
 	}
