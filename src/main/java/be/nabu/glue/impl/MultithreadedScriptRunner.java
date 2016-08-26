@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadFactory;
 
 import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.ExecutionEnvironment;
@@ -39,11 +40,15 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 	}
 	
 	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime, boolean debug) {
+		this(poolSize, maxScriptRuntime, debug, null);
+	}
+	
+	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime, boolean debug, ThreadFactory threadFactory) {
+		this.threadPool = threadFactory == null ? Executors.newFixedThreadPool(poolSize) : Executors.newFixedThreadPool(poolSize, threadFactory);
 		this.maxScriptRuntime = maxScriptRuntime;
 		this.debug = debug;
-		this.threadPool = Executors.newFixedThreadPool(poolSize);
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<ScriptResult> run(ExecutionEnvironment environment, ScriptRepository repository, ScriptFilter filter, LabelEvaluator labelEvaluator) {
