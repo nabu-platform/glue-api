@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -41,16 +40,12 @@ public class FormattedValidation {
 		return formatted;
 	}
 
-	/**
-	 * Named level for legacy reasons
-	 */
-	@XmlElement(name = "level")
 	public Severity getSeverity() {
 		return severity;
 	}
 
-	public void setSeverity(Severity level) {
-		this.severity = level;
+	public void setSeverity(Severity severity) {
+		this.severity = severity;
 	}
 
 	public String getValidation() {

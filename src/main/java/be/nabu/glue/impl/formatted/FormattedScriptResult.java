@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -73,15 +72,11 @@ public class FormattedScriptResult {
 	public void setValidations(List<FormattedValidation> validations) {
 		this.validations = validations;
 	}
-	/**
-	 * This name is for legacy reasons, it was called level before it merged with the validation API
-	 */
-	@XmlElement(name = "level")
 	public Severity getSeverity() {
 		return severity;
 	}
-	public void setSeverity(Severity level) {
-		this.severity = level;
+	public void setSeverity(Severity severity) {
+		this.severity = severity;
 	}
 	public String getName() {
 		return name;

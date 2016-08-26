@@ -8,7 +8,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -130,15 +129,11 @@ public class FormattedDashboard {
 		public void setName(String name) {
 			this.name = name;
 		}
-		/**
-		 * Legacy reasons
-		 */
-		@XmlElement(name = "level")
 		public Severity getSeverity() {
 			return severity;
 		}
-		public void setSeverity(Severity level) {
-			this.severity = level;
+		public void setSeverity(Severity severity) {
+			this.severity = severity;
 		}
 		public Date getStarted() {
 			return started;
