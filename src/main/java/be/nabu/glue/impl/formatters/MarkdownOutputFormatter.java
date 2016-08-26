@@ -32,7 +32,7 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	public void start(Script script) {
 		if (root == null) {
 			root = script;
-			if (includeBuildTimestamp) {
+			if (includeBuildTimestamp && ScriptUtils.getBuildTime().getTime() != 0) {
 				printBlock("@build " + ScriptUtils.getBuildTime(), "");
 			}
 			try {
