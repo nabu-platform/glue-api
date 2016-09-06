@@ -36,12 +36,12 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 				printBlock("@build " + ScriptUtils.getBuildTime(), "");
 			}
 			try {
-				String title = script.getRoot().getContext().getAnnotations().get("title");
+				String title = script.getRoot().getContext() == null ? null : script.getRoot().getContext().getAnnotations().get("title");
 				if (title == null) {
 					title = script.getName();
 				}
 				printBlock("# " + title, "");
-				if (script.getRoot().getContext().getDescription() != null) {
+				if (script.getRoot().getContext() != null && script.getRoot().getContext().getDescription() != null) {
 					printBlock(script.getRoot().getContext().getDescription(), "");
 				}
 			}
