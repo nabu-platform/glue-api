@@ -205,7 +205,7 @@ public class ScriptRuntime implements Runnable {
 				formatter = parent.getFormatter();
 			}
 			else {
-				formatter = new SimpleOutputFormatter(new OutputStreamWriter(System.out, Charset.forName("UTF-8")));
+				formatter = new SimpleOutputFormatter(new OutputStreamWriter(System.out, Charset.forName("UTF-8")), true, false);
 			}
 		}
 		return formatter;
