@@ -12,8 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import be.nabu.glue.DynamicScript;
-import be.nabu.glue.ScriptUtils;
 import be.nabu.glue.api.ExecutorContext;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.ParameterDescription;
@@ -22,6 +20,8 @@ import be.nabu.glue.api.ParserProvider;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptFilter;
 import be.nabu.glue.api.ScriptRepository;
+import be.nabu.glue.utils.DynamicScript;
+import be.nabu.glue.utils.ScriptUtils;
 
 public class MatrixScriptRepository implements ScriptRepository {
 

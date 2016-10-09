@@ -1,4 +1,4 @@
-package be.nabu.glue;
+package be.nabu.glue.utils;
 
 import be.nabu.glue.api.Executor;
 

@@ -15,7 +15,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 
-import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
@@ -27,6 +26,7 @@ import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptRunner;
 import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.glue.impl.formatters.MarkdownOutputFormatter;
+import be.nabu.glue.utils.ScriptRuntime;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class MultithreadedScriptRunner implements ScriptRunner {

@@ -7,12 +7,12 @@ import java.io.Writer;
 import java.text.ParseException;
 import java.util.Date;
 
-import be.nabu.glue.ScriptUtils;
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.glue.utils.ScriptUtils;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class MarkdownOutputFormatter extends SimpleOutputFormatter {

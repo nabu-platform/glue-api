@@ -7,11 +7,11 @@ import java.io.Writer;
 import java.util.Arrays;
 import java.util.Date;
 
-import be.nabu.glue.ScriptRuntime;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.GlueValidation;
+import be.nabu.glue.utils.ScriptRuntime;
 
 public class SimpleOutputFormatter implements OutputFormatter {
 
