@@ -22,6 +22,7 @@ import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.PermissionValidator;
+import be.nabu.glue.api.PostProcessor;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.StringSubstituter;
 import be.nabu.glue.api.StringSubstituterProvider;
@@ -55,6 +56,7 @@ public class ScriptRuntime implements Runnable {
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 	private PermissionValidator permissionValidator;
 	private List<StringSubstituterProvider> substituterProviders;
+	private List<PostProcessor> postProcessors;
 
 	public ScriptRuntime(Script script, ExecutionContext context, Map<String, Object> input) {
 		this.script = script;
@@ -114,6 +116,11 @@ public class ScriptRuntime implements Runnable {
 				started = new Date();
 				script.getRoot().execute(executionContext);
 				stopped = new Date();
+				if (postProcessors != null) {
+					for (PostProcessor processor : postProcessors) {
+						processor.postProcess(executionContext);
+					}
+				}
 				trace = executionContext.isTrace();
 				if (current != null) {
 					executionContext.setCurrent(current);
@@ -387,4 +394,12 @@ public class ScriptRuntime implements Runnable {
 		}
 		return new MultipleSubstituter(substituters);
 	}
+
+	public List<PostProcessor> getPostProcessors() {
+		return postProcessors;
+	}
+	public void setPostProcessors(List<PostProcessor> postProcessors) {
+		this.postProcessors = postProcessors;
+	}
+	
 }
