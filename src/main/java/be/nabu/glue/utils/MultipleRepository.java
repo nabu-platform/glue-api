@@ -4,16 +4,19 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import be.nabu.glue.api.MethodDescription;
 import be.nabu.glue.api.ParserProvider;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptRepository;
+import be.nabu.glue.api.ScriptRepositoryWithDescriptions;
 
-public class MultipleRepository implements ScriptRepository {
+public class MultipleRepository implements ScriptRepository, ScriptRepositoryWithDescriptions {
 
 	private List<ScriptRepository> repositories = new ArrayList<ScriptRepository>();
 	private Map<String, Script> scriptsBySimpleName, scriptsByFullName;
@@ -125,5 +128,19 @@ public class MultipleRepository implements ScriptRepository {
 				loadScripts();
 			}	
 		}
+	}
+	
+	@Override
+	public Collection<MethodDescription> getDescriptions() {
+		List<MethodDescription> descriptions = new ArrayList<MethodDescription>();
+		for (ScriptRepository repository : repositories) {
+			if (repository instanceof ScriptRepositoryWithDescriptions) {
+				descriptions.addAll(((ScriptRepositoryWithDescriptions) repository).getDescriptions());
+			}
+			else {
+				descriptions.addAll(ScriptUtils.buildDescriptionsFor(repository));
+			}
+		}
+		return descriptions;
 	}
 }

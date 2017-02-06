@@ -17,9 +17,11 @@ import java.util.Map;
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
+import be.nabu.glue.api.MethodDescription;
 import be.nabu.glue.api.ParameterDescription;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptRepository;
+import be.nabu.glue.impl.SimpleMethodDescription;
 import be.nabu.glue.impl.SimpleParameterDescription;
 
 public class ScriptUtils {
@@ -78,6 +80,25 @@ public class ScriptUtils {
 		return getParameters(group, recursive, true);
 	}
 
+	public static List<MethodDescription> buildDescriptionsFor(ScriptRepository repository) {
+		List<MethodDescription> descriptions = new ArrayList<MethodDescription>();
+		for (Script script : repository) {
+			try {
+				descriptions.add(new SimpleMethodDescription(script.getNamespace(), script.getName(), script.getRoot().getContext().getComment(), ScriptUtils.getInputs(script), ScriptUtils.getOutputs(script)));
+			}
+			catch (IOException e) {
+				// ignore
+			}
+			catch (ParseException e) {
+				// ignore
+			}
+			catch (RuntimeException e) {
+				// ignore
+			}
+		}
+		return descriptions;
+	}
+	
 	public static List<ParameterDescription> getParameters(ExecutorGroup group, boolean recursive, boolean inputOnly) throws ParseException, IOException {
 		Map<String, ParameterDescription> parameters = new LinkedHashMap<String, ParameterDescription>();
 		for (Executor executor : group.getChildren()) {
