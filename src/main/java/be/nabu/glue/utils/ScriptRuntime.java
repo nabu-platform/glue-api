@@ -313,6 +313,12 @@ public class ScriptRuntime implements Runnable {
 	public void registerInThread() {
 		runtime.set(this);
 	}
+	
+	public void unregisterInThread() {
+		if (runtime.get() != null && runtime.get().equals(this)) {
+			runtime.set(null);
+		}
+	}
 
 	public boolean isAborted() {
 		return aborted || getRoot().aborted;
