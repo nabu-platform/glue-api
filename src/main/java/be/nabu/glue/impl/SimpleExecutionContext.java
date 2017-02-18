@@ -13,9 +13,10 @@ import be.nabu.glue.api.ExecutionContext;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
+import be.nabu.glue.api.SecurityUpgradeable;
 import be.nabu.glue.utils.ScriptRuntime;
 
-public class SimpleExecutionContext implements ExecutionContext {
+public class SimpleExecutionContext implements ExecutionContext, SecurityUpgradeable {
 
 	private Map<String, Object> contextVariables = new LinkedHashMap<String, Object>();
 	private ExecutionEnvironment executionEnvironment;
@@ -155,6 +156,7 @@ public class SimpleExecutionContext implements ExecutionContext {
 	public Principal getPrincipal() {
 		return principal;
 	}
+	@Override
 	public void setPrincipal(Principal principal) {
 		this.principal = principal;
 	}
