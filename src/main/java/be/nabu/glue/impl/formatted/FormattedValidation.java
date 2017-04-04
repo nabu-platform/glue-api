@@ -28,10 +28,10 @@ public class FormattedValidation {
 		formatted.setMessage(validation.getDescription());
 		List<String> callStack = new ArrayList<String>();
 		for (CallLocation item : validation.getContext()) {
-			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
+			callStack.add("[" + item.getScript().getNamespace() + "] " + item.getScript().getName() + (item.getExecutor() != null && item.getExecutor().getContext() != null ? ":" + item.getExecutor().getContext().getLine() : ""));
 		}
 		formatted.setCallStack(callStack);
-		if (validation.getExecutor() != null) {
+		if (validation.getExecutor() != null && validation.getExecutor().getContext() != null) {
 			formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
 			formatted.setLine(validation.getExecutor().getContext().getLine());
 			formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
