@@ -10,9 +10,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import be.nabu.glue.api.ExecutionContext;
 import be.nabu.glue.api.ExecutionEnvironment;
@@ -319,6 +321,12 @@ public class ScriptRuntime implements Runnable {
 			runtime.set(null);
 		}
 	}
+	
+	public void unregisterAnyInThread() {
+		if (runtime.get() != null) {
+			runtime.set(null);
+		}
+	}
 
 	public boolean isAborted() {
 		return aborted || getRoot().aborted;
@@ -332,8 +340,18 @@ public class ScriptRuntime implements Runnable {
 			abort();
 		}
 	}
+	@SuppressWarnings("unchecked")
 	public void abort() {
 		getRoot().aborted = true;
+		// if we abort, shut down all the pending futures too
+		List<Future<?>> futures = (List<Future<?>>) getContext().get("futures");
+		if (futures != null) {
+			for (Future<?> future : futures) {
+				if (!future.isDone() && !future.isDone()) {
+					future.cancel(true);
+				}
+			}
+		}
 	}
 	
 	List<Transactionable> getTransactionables() {
@@ -408,4 +426,20 @@ public class ScriptRuntime implements Runnable {
 		this.postProcessors = postProcessors;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public void addFuture(Future<?>...newFutures) {
+		List<Future<?>> futures = (List<Future<?>>) getContext().get("futures");
+		if (futures == null) {
+			futures = new ArrayList<Future<?>>();
+			getContext().put("futures", futures);
+		}
+		Iterator<Future<?>> iterator = futures.iterator();
+		while(iterator.hasNext()) {
+			Future<?> future = iterator.next();
+			if (future.isDone() || future.isCancelled()) {
+				iterator.remove();
+			}
+		}
+		futures.addAll(Arrays.asList(newFutures));
+	}
 }
