@@ -68,7 +68,7 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 		if (properties == null) {
 			properties = new Properties();
 			// check the installation directory (if possible)
-			String installationDirectory = System.getenv("GLUE");
+			String installationDirectory = System.getProperty("glue", System.getenv("GLUE"));
 			File installationFile = installationDirectory == null ? null : new File(installationDirectory, ".glue");
 			if (installationFile != null && installationFile.exists()) {
 				properties.putAll(parse(installationFile));
