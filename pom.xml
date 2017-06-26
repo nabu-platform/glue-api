@@ -34,6 +34,10 @@
 			<groupId>be.nabu.libs.validator</groupId>
 			<artifactId>validator-api</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>be.nabu.libs.metrics</groupId>
+			<artifactId>metrics-api</artifactId>
+		</dependency>
 	
 		<!-- testing -->
 		<dependency>

@@ -112,4 +112,9 @@ public class ForkedExecutionContext implements ExecutionContext {
 	public Principal getPrincipal() {
 		return parent.getPrincipal();
 	}
+
+	public ExecutionContext getParent() {
+		return parent;
+	}
+	
 }

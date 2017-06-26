@@ -36,8 +36,13 @@ import be.nabu.glue.impl.SimpleExecutionContext;
 import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.libs.converter.ConverterFactory;
 import be.nabu.libs.converter.api.Converter;
+import be.nabu.libs.metrics.api.MetricInstance;
+import be.nabu.libs.metrics.api.MetricProvider;
+import be.nabu.libs.metrics.api.MetricTimer;
 
 public class ScriptRuntime implements Runnable {
+	
+	public static final String METRIC_EXECUTION_TIME = "scriptExecutionTime";
 	
 	private boolean debug, trace;
 	private ExecutionEnvironment environment;
@@ -101,56 +106,65 @@ public class ScriptRuntime implements Runnable {
 			parent.child = this;
 		}
 		runtime.set(this);
-		getFormatter().start(script);
 		try {
+			getFormatter().start(script);
 			try {
-				if (permissionValidator != null && !permissionValidator.canExecute(script, environment)) {
-					throw new ScriptRuntimeException(this, "No permission to execute script: " + script.getName());
-				}
-				if (trace) {
-					scanForBreakpoints(script.getRoot());
-					executionContext.addBreakpoint(breakpoints.toArray(new String[breakpoints.size()]));
-				}
-				// preserve the current, mostly important for forking
-				Executor current = executionContext.getCurrent();
-				// make sure we detect breakpoints if we are tracing
-				executionContext.setTrace(trace);
-				started = new Date();
-				script.getRoot().execute(executionContext);
-				stopped = new Date();
-				if (postProcessors != null) {
-					for (PostProcessor processor : postProcessors) {
-						processor.postProcess(executionContext);
+				try {
+					MetricInstance metrics = executionContext instanceof MetricProvider ? ((MetricProvider) executionContext).getMetricInstance(ScriptUtils.getFullName(script)) : null;
+					if (permissionValidator != null && !permissionValidator.canExecute(script, environment)) {
+						throw new ScriptRuntimeException(this, "No permission to execute script: " + script.getName());
+					}
+					if (trace) {
+						scanForBreakpoints(script.getRoot());
+						executionContext.addBreakpoint(breakpoints.toArray(new String[breakpoints.size()]));
+					}
+					// preserve the current, mostly important for forking
+					Executor current = executionContext.getCurrent();
+					// make sure we detect breakpoints if we are tracing
+					executionContext.setTrace(trace);
+					started = new Date();
+					MetricTimer timer = metrics == null ? null : metrics.start(METRIC_EXECUTION_TIME);
+					script.getRoot().execute(executionContext);
+					if (timer != null) {
+						timer.stop();
+					}
+					stopped = new Date();
+					if (postProcessors != null) {
+						for (PostProcessor processor : postProcessors) {
+							processor.postProcess(executionContext);
+						}
+					}
+					trace = executionContext.isTrace();
+					if (current != null) {
+						executionContext.setCurrent(current);
 					}
 				}
-				trace = executionContext.isTrace();
-				if (current != null) {
-					executionContext.setCurrent(current);
+				catch (ScriptRuntimeException e) {
+					exception = e;
+					throw e;
+				}
+				catch (ExecutionException e) {
+					exception = e;
+					throw new ScriptRuntimeException(this, e);
+				}
+				catch (IOException e) {
+					exception = e;
+					throw new ScriptRuntimeException(this, e);
+				}
+				catch (ParseException e) {
+					exception = e;
+					throw new ScriptRuntimeException(this, e);
+				}
+				catch (RuntimeException e) {
+					exception = e;
+					throw new ScriptRuntimeException(this, e);
 				}
 			}
-			catch (ScriptRuntimeException e) {
-				exception = e;
-				throw e;
-			}
-			catch (ExecutionException e) {
-				exception = e;
-				throw new ScriptRuntimeException(this, e);
-			}
-			catch (IOException e) {
-				exception = e;
-				throw new ScriptRuntimeException(this, e);
-			}
-			catch (ParseException e) {
-				exception = e;
-				throw new ScriptRuntimeException(this, e);
-			}
-			catch (RuntimeException e) {
-				exception = e;
-				throw new ScriptRuntimeException(this, e);
+			finally {
+				getFormatter().end(script, started, stopped, exception);
 			}
 		}
 		finally {
-			getFormatter().end(script, started, stopped, exception);
 			if (getParent() != null) {
 				if (!forked) {
 					parent.child = null;
@@ -198,6 +212,16 @@ public class ScriptRuntime implements Runnable {
 	
 	public ScriptRuntime fork(Script script, boolean localPipeline) {
 		return new ScriptRuntime(this, script, localPipeline);
+	}
+	
+	public ScriptRuntime fork(ExecutionContext context) {
+		ScriptRuntime runtime = new ScriptRuntime(script, context, new HashMap<String, Object>());
+		runtime.setFormatter(getFormatter());
+		runtime.setLabelEvaluator(getLabelEvaluator());
+		runtime.setPermissionValidator(getPermissionValidator());
+		runtime.setPostProcessors(getPostProcessors());
+		runtime.setTrace(isTrace());
+		return runtime;
 	}
 	
 	public ExecutionContext getExecutionContext() {
@@ -313,12 +337,23 @@ public class ScriptRuntime implements Runnable {
 	}
 	
 	public void registerInThread() {
+		registerInThread(false);
+	}
+	
+	public void registerInThread(boolean inheritParent) {
+		if (runtime.get() != null && inheritParent) {
+			parent = runtime.get();
+			parent.child = this;
+		}
 		runtime.set(this);
 	}
 	
 	public void unregisterInThread() {
 		if (runtime.get() != null && runtime.get().equals(this)) {
 			runtime.set(null);
+		}
+		if (parent != null && equals(parent.child)) {
+			parent.child = null;
 		}
 	}
 	
@@ -427,19 +462,32 @@ public class ScriptRuntime implements Runnable {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void addFuture(Future<?>...newFutures) {
+	public List<Future<?>> getFutures() {
 		List<Future<?>> futures = (List<Future<?>>) getContext().get("futures");
 		if (futures == null) {
-			futures = new ArrayList<Future<?>>();
-			getContext().put("futures", futures);
-		}
-		Iterator<Future<?>> iterator = futures.iterator();
-		while(iterator.hasNext()) {
-			Future<?> future = iterator.next();
-			if (future.isDone() || future.isCancelled()) {
-				iterator.remove();
+			synchronized(getContext()) {
+				futures = (List<Future<?>>) getContext().get("futures");
+				if (futures == null) {
+					futures = new ArrayList<Future<?>>();
+					getContext().put("futures", futures);
+				}
 			}
 		}
-		futures.addAll(Arrays.asList(newFutures));
+		return futures;
 	}
+	
+	public void addFuture(Future<?>...newFutures) {
+		List<Future<?>> futures = getFutures();
+		synchronized(futures) {
+			Iterator<Future<?>> iterator = futures.iterator();
+			while(iterator.hasNext()) {
+				Future<?> future = iterator.next();
+				if (future.isDone() || future.isCancelled()) {
+					iterator.remove();
+				}
+			}
+			futures.addAll(Arrays.asList(newFutures));
+		}
+	}
+	
 }
