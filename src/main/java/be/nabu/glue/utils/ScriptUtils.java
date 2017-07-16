@@ -115,7 +115,9 @@ public class ScriptUtils {
 					}
 				}
 			}
-			else if (executor instanceof ExecutorGroup && recursive) {
+			// we skip assignment executors even if they are groups, this is currently _only_ the case for lambdas which we don't want to inspect
+			// in the future this may need an extension of the interface to mark it for inspection
+			else if (executor instanceof ExecutorGroup && recursive && !(executor instanceof AssignmentExecutor)) {
 				for (ParameterDescription childDescription : getParameters((ExecutorGroup) executor, recursive, inputOnly)) {
 					if (!parameters.containsKey(childDescription.getName())) {
 						parameters.put(childDescription.getName(), childDescription);
@@ -144,7 +146,8 @@ public class ScriptUtils {
 						.setList(assignmentExecutor.isList()));
 				}
 			}
-			if (executor instanceof ExecutorGroup) {
+			// see logic description of assignmentexecutor check in getparameters
+			if (executor instanceof ExecutorGroup && !(executor instanceof AssignmentExecutor)) {
 				outputs.putAll(getOutputs((ExecutorGroup) executor, filter));
 			}
 		}
