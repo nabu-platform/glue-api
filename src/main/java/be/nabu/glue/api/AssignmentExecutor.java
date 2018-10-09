@@ -5,4 +5,5 @@ public interface AssignmentExecutor extends Executor {
 	public String getVariableName();
 	public String getOptionalType();
 	public boolean isList();
+	public Object getDefaultValue();
 }

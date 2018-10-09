@@ -111,7 +111,8 @@ public class ScriptUtils {
 							enumerations = assignmentExecutor.getContext().getAnnotations().get("enumeration").split("[\\s]*,[\\s]*");
 						}
 						parameters.put(assignmentExecutor.getVariableName(), new SimpleParameterDescription(assignmentExecutor.getVariableName(), assignmentExecutor.getContext().getComment(), assignmentExecutor.getOptionalType(), false, enumerations == null ? new String[0] : enumerations)
-								.setList(assignmentExecutor.isList()));
+								.setList(assignmentExecutor.isList())
+								.setDefaultValue(assignmentExecutor.getDefaultValue()));
 					}
 				}
 			}
