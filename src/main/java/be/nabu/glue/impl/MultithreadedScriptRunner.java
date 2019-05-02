@@ -165,13 +165,13 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		}
 
 		@Override
-		public Date getTimestamp() {
+		public Date getCreated() {
 			return timestamp;
 		}
 
 		@Override
-		public Integer getCode() {
-			return 0;
+		public String getCode() {
+			return "0";
 		}
 		
 	}

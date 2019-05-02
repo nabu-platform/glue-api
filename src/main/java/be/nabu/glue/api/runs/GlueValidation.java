@@ -11,8 +11,4 @@ public interface GlueValidation extends Validation<CallLocation> {
 	 */
 	public Executor getExecutor();
 	
-	/**
-	 * When the validation occurred
-	 */
-	public Date getTimestamp();
 }

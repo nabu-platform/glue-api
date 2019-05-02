@@ -36,7 +36,7 @@ public class FormattedValidation {
 			formatted.setLine(validation.getExecutor().getContext().getLine());
 			formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
 		}
-		formatted.setTimestamp(validation.getTimestamp());
+		formatted.setTimestamp(validation.getCreated());
 		return formatted;
 	}
 
