@@ -1,12 +1,14 @@
 package be.nabu.glue.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import be.nabu.glue.api.ExecutorGroup;
 import be.nabu.glue.api.Parser;
@@ -21,6 +23,7 @@ public class DynamicScript implements Script {
 	private Parser parser;
 	private Charset charset = Charset.defaultCharset();
 	private String name, namespace;
+	private Map<String, byte[]> resources = new HashMap<String, byte[]>();
 
 	public DynamicScript(ScriptRepository repository, Parser parser) {
 		this.repository = repository;
@@ -39,7 +42,7 @@ public class DynamicScript implements Script {
 	
 	@Override
 	public Iterator<String> iterator() {
-		return new ArrayList<String>().iterator();
+		return resources.keySet().iterator();
 	}
 
 	@Override
@@ -79,7 +82,8 @@ public class DynamicScript implements Script {
 
 	@Override
 	public InputStream getResource(String name) throws IOException {
-		return null;
+		byte[] content = resources.get(name);
+		return content == null ? null : new ByteArrayInputStream(content);
 	}
 
 	public void setRoot(ExecutorGroup root) {
@@ -97,4 +101,9 @@ public class DynamicScript implements Script {
 	public void setNamespace(String namespace) {
 		this.namespace = namespace;
 	}
+
+	public Map<String, byte[]> getResources() {
+		return resources;
+	}
+	
 }

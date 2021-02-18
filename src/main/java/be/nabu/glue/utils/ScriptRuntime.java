@@ -490,4 +490,9 @@ public class ScriptRuntime implements Runnable {
 		}
 	}
 	
+	private List<String> imports = new ArrayList<String>();
+	
+	public List<String> getImports() {
+		return imports;
+	}
 }
