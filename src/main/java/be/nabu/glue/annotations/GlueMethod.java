@@ -11,4 +11,6 @@ public @interface GlueMethod {
 	public String description() default "";
 	public String returns() default "";
 	public double version() default -1;
+	// restricted methods are not available in sandbox mode
+	public boolean restricted() default false;
 }

@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.Future;
 
 import be.nabu.glue.api.ExecutionContext;
@@ -21,6 +23,7 @@ import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.ExecutionException;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
+import be.nabu.glue.api.InputProvider;
 import be.nabu.glue.api.LabelEvaluator;
 import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.PermissionValidator;
@@ -33,6 +36,7 @@ import be.nabu.glue.impl.ForkedExecutionContext;
 import be.nabu.glue.impl.MultipleSubstituter;
 import be.nabu.glue.impl.ParserSubstituterProvider;
 import be.nabu.glue.impl.SimpleExecutionContext;
+import be.nabu.glue.impl.StandardInputProvider;
 import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.libs.converter.ConverterFactory;
 import be.nabu.libs.converter.api.Converter;
@@ -43,6 +47,8 @@ import be.nabu.libs.metrics.api.MetricTimer;
 public class ScriptRuntime implements Runnable {
 	
 	public static final String METRIC_EXECUTION_TIME = "scriptExecutionTime";
+	// by default sandboxed scripts can only last 15 seconds
+	public static final Long SANDBOX_DURATION = Long.parseLong(System.getProperty("sandbox.duration", "15000"));
 	
 	private boolean debug, trace;
 	private ExecutionEnvironment environment;
@@ -59,6 +65,7 @@ public class ScriptRuntime implements Runnable {
 	private Date started, stopped;
 	private Exception exception;
 	private OutputFormatter formatter;
+	private InputProvider inputProvider;
 	private boolean aborted = false;
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 	private PermissionValidator permissionValidator;
@@ -101,6 +108,24 @@ public class ScriptRuntime implements Runnable {
 
 	@Override
 	public void run() {
+		// in sandbox mode, if it is the root of a script, we will abort it after a set time interval
+		boolean sandboxed = "true".equals(executionContext.getExecutionEnvironment().getParameters().get("sandboxed"));
+		ForkJoinTask<?> aborter = null;
+		if (sandboxed && SANDBOX_DURATION > 0 && (forked || parent == null)) {
+			aborter = ForkJoinPool.commonPool().submit(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(SANDBOX_DURATION);
+					}
+					catch (InterruptedException e) {
+						// ignore interruption
+					}
+					abort();
+				}
+			});
+		}
+		
 		parent = runtime.get();
 		if (!forked && parent != null) {
 			parent.child = this;
@@ -165,6 +190,10 @@ public class ScriptRuntime implements Runnable {
 			}
 		}
 		finally {
+			// if we have exited the root script, cancel any timer that might exist
+			if (aborter != null) {
+				aborter.cancel(true);
+			}
 			if (getParent() != null) {
 				if (!forked) {
 					parent.child = null;
@@ -228,6 +257,22 @@ public class ScriptRuntime implements Runnable {
 		return executionContext;
 	}
 	
+	public InputProvider getInputProvider() {
+		if (inputProvider == null) {
+			if (parent != null) {
+				inputProvider = parent.getInputProvider();
+			}
+			else {
+				inputProvider = new StandardInputProvider();
+			}
+		}
+		return inputProvider;
+	}
+
+	public void setInputProvider(InputProvider inputProvider) {
+		this.inputProvider = inputProvider;
+	}
+
 	public void setFormatter(OutputFormatter formatter) {
 		this.formatter = formatter;
 	}

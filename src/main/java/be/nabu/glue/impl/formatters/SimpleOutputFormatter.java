@@ -19,6 +19,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 	private boolean addLineFeeds;
 	private boolean replaceVariables;
 	private OutputFormatter parent;
+	private boolean outputted;
 
 	public SimpleOutputFormatter(Writer writer) {
 		this(writer, true);
@@ -87,6 +88,7 @@ public class SimpleOutputFormatter implements OutputFormatter {
 						writer.append(System.getProperty("line.separator"));
 					}
 					writer.flush();
+					outputted = true;
 				}
 				catch (IOException e) {
 					throw new IllegalStateException(e);
@@ -123,6 +125,10 @@ public class SimpleOutputFormatter implements OutputFormatter {
 
 	public void setReplaceVariables(boolean replaceVariables) {
 		this.replaceVariables = replaceVariables;
+	}
+
+	public boolean isOutputted() {
+		return outputted;
 	}
 	
 }

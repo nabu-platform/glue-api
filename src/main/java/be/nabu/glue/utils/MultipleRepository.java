@@ -123,10 +123,18 @@ public class MultipleRepository implements ScriptRepository, ScriptRepositoryWit
 	}
 	
 	public void remove(ScriptRepository...repository) {
-		if (this.repositories.removeAll(Arrays.asList(repositories))) {
+		if (this.repositories.removeAll(Arrays.asList(repository))) {
 			synchronized(this) {
 				loadScripts();
 			}	
+		}
+	}
+	
+	// remove all repositories
+	public void removeAll() {
+		this.repositories.clear();
+		synchronized(this) {
+			loadScripts();
 		}
 	}
 	
