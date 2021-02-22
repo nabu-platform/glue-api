@@ -3,6 +3,7 @@ package be.nabu.glue.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -89,6 +90,17 @@ public class SimpleExecutionEnvironment implements ExecutionEnvironment {
 			}
 		}
 		return properties;
+	}
+	
+	public static void loadProperties(InputStream input) {
+		Properties properties = new Properties();
+		try {
+			properties.load(input);
+			getProperties().putAll(properties);
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	private static Properties parse(File file) throws IOException {
