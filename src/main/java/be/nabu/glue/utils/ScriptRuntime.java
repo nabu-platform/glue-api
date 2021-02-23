@@ -29,6 +29,7 @@ import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.PermissionValidator;
 import be.nabu.glue.api.PostProcessor;
 import be.nabu.glue.api.Script;
+import be.nabu.glue.api.StreamProvider;
 import be.nabu.glue.api.StringSubstituter;
 import be.nabu.glue.api.StringSubstituterProvider;
 import be.nabu.glue.api.Transactionable;
@@ -66,6 +67,7 @@ public class ScriptRuntime implements Runnable {
 	private Exception exception;
 	private OutputFormatter formatter;
 	private InputProvider inputProvider;
+	private StreamProvider streamProvider;
 	private boolean aborted = false;
 	private List<Transactionable> transactionables = new ArrayList<Transactionable>();
 	private PermissionValidator permissionValidator;
@@ -257,6 +259,17 @@ public class ScriptRuntime implements Runnable {
 		return executionContext;
 	}
 	
+	public StreamProvider getStreamProvider() {
+		if (streamProvider == null && parent != null) {
+			return parent.getStreamProvider();
+		}
+		return streamProvider;
+	}
+
+	public void setStreamProvider(StreamProvider streamProvider) {
+		this.streamProvider = streamProvider;
+	}
+
 	public InputProvider getInputProvider() {
 		if (inputProvider == null) {
 			if (parent != null) {
@@ -540,4 +553,6 @@ public class ScriptRuntime implements Runnable {
 	public List<String> getImports() {
 		return imports;
 	}
+	
+	
 }

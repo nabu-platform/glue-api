@@ -13,17 +13,22 @@ public class StandardInputProvider implements InputProvider {
 		if (message != null) {
 			System.out.print(message);
 		}
+		String result;
 		if (System.console() != null) {
 			if (secret) {
-				return new String(System.console().readPassword());
+				result = new String(System.console().readPassword());
 			}
 			else {
-				return System.console().readLine();
+				result = System.console().readLine();
 			}
 		}
 		else {
-			return new BufferedReader(new InputStreamReader(System.in)).readLine();
+			result = new BufferedReader(new InputStreamReader(System.in)).readLine();
 		}
+		if (result == null || result.trim().isEmpty()) {
+			result = defaultValue;
+		}
+		return result;
 	}
 
 }
