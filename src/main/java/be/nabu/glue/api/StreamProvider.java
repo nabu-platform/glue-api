@@ -7,4 +7,5 @@ public interface StreamProvider {
 	public OutputStream getErrorStream();
 	public OutputStream getOutputStream();
 	public InputStream getInputStream();
+	public boolean isBlocking();
 }
