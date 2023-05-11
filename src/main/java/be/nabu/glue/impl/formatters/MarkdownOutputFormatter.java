@@ -10,6 +10,7 @@ import java.util.Date;
 import be.nabu.glue.api.AssignmentExecutor;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.ExecutorGroup;
+import be.nabu.glue.api.OutputFormatter;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.glue.utils.ScriptUtils;
@@ -17,6 +18,8 @@ import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	
+	private OutputFormatter parent;
+	private boolean allowDeepLogging = true;
 	private int depth = 2;
 	private Script root;
 	private int scriptDepth = 0;
@@ -52,8 +55,11 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 				throw new RuntimeException(e);
 			}
 		}
-		else {
+		else if (!allowDeepLogging) {
 			scriptDepth++;
+		}
+		if (parent != null) {
+			parent.start(script);
 		}
 	}
 
@@ -75,12 +81,18 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 				print(executor.getContext().getDescription());
 			}
 		}
+		if (parent != null) {
+			parent.before(executor);
+		}
 	}
 
 	@Override
 	public void after(Executor executor) {
 		if (scriptDepth == 0 && executor instanceof ExecutorGroup && executor.getContext().getDescription() != null) {
 			depth--;
+		}
+		if (parent != null) {
+			parent.after(executor);
 		}
 	}
 
@@ -114,6 +126,9 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 				super.print((grouped ? "\t" : "") + "- " + validation);
 			}
 		}
+		if (parent != null) {
+			parent.validated(validations);
+		}
 	}
 	
 	public void printBlock(Object...messages) {
@@ -137,11 +152,16 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 		}
 		inBlock = true;
 		super.print(messages);
+		if (parent != null) {
+			parent.print(messages);
+		}
 	}
 
 	@Override
 	public void end(Script script, Date started, Date stopped, Exception exception) {
-		scriptDepth--;
+		if (!allowDeepLogging) {
+			scriptDepth--;
+		}
 		if (exception != null) {
 			StringWriter output = new StringWriter();
 			PrintWriter writer = new PrintWriter(output);
@@ -149,5 +169,22 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 			writer.flush();
 			print(output.toString());
 		}
+		if (parent != null) {
+			parent.end(script, started, stopped, exception);
+		}
+	}
+
+	public boolean isAllowDeepLogging() {
+		return allowDeepLogging;
+	}
+	public void setAllowDeepLogging(boolean allowDeepLogging) {
+		this.allowDeepLogging = allowDeepLogging;
+	}
+
+	public OutputFormatter getParent() {
+		return parent;
+	}
+	public void setParent(OutputFormatter parent) {
+		this.parent = parent;
 	}
 }
