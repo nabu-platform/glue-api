@@ -18,14 +18,18 @@ import java.util.concurrent.ThreadFactory;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Executor;
 import be.nabu.glue.api.LabelEvaluator;
+import be.nabu.glue.api.OutputFormatterProvider;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.ScriptFilter;
 import be.nabu.glue.api.ScriptRepository;
+import be.nabu.glue.api.ScriptRuntimeRunnableWrapper;
 import be.nabu.glue.api.runs.CallLocation;
+import be.nabu.glue.api.runs.GlueAttachment;
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptRunner;
 import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.glue.impl.formatters.MarkdownOutputFormatter;
+import be.nabu.glue.impl.formatters.SimpleOutputFormatter;
 import be.nabu.glue.utils.ScriptRuntime;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
@@ -34,6 +38,8 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 	private ExecutorService threadPool;
 	private boolean debug;
 	private long maxScriptRuntime;
+	private OutputFormatterProvider outputFormatterProvider;
+	private ScriptRuntimeRunnableWrapper runtimeWrapper;
 
 	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime) {
 		this(poolSize, maxScriptRuntime, false);
@@ -59,7 +65,13 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 			System.out.print("\t" + script.getName() + " (" + script.getNamespace() + ")...");
 			if (filter.accept(script)) {
 				ScriptRuntime runtime = new ScriptRuntime(script, environment, debug, new HashMap<String, Object>());
-				runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(debug ? new MultipleWriter(new OutputStreamWriter(System.out)) : new StringWriter())));
+				if (outputFormatterProvider == null) {
+					runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(debug ? new MultipleWriter(new OutputStreamWriter(System.out)) : new StringWriter())));
+				}
+				else {
+					runtime.setFormatter(outputFormatterProvider.newFormatter(new SimpleOutputFormatter(new StringWriter())));
+				}
+//				runtime.setFormatter(new SimpleOutputFormatter(new StringWriter()));
 				runtime.setLabelEvaluator(labelEvaluator);
 				runtimes.add(runtime);
 				System.out.println("accepted");
@@ -71,7 +83,7 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		System.out.println("Submitting " + runtimes.size() + " scripts");
 		for (ScriptRuntime runtime : runtimes) {
 			try {
-				futures.put(threadPool.submit(runtime), runtime);
+				futures.put(threadPool.submit(runtimeWrapper == null ? runtime : runtimeWrapper.wrap(runtime)), runtime);
 			}
 			catch (RejectedExecutionException e) {
 				System.out.println("Forced stop submitting due to rejected exception: " + e.getMessage());
@@ -117,7 +129,16 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		List<ScriptResult> results = new ArrayList<ScriptResult>();
 		for (ScriptRuntime runtime : runtimes) {
 			List<GlueValidation> validations  = (List<GlueValidation>) runtime.getContext().get("$validation");
-			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString(), validations == null ? new ArrayList<GlueValidation>() : validations));
+			List<GlueAttachment> attachments = (List<GlueAttachment>) runtime.getContext().get("$attachment");
+//			String log = ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString();
+			String log;
+			if (outputFormatterProvider != null) {
+				log = ((SimpleOutputFormatter) runtime.getFormatter().getParent()).getWriter().toString();
+			}
+			else {
+				log = ((SimpleOutputFormatter) runtime.getFormatter()).getWriter().toString();
+			}
+			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), log, validations == null ? new ArrayList<GlueValidation>() : validations, attachments));
 		}
 		return results;
 	}
@@ -175,4 +196,22 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		}
 		
 	}
+
+	public OutputFormatterProvider getOutputFormatterProvider() {
+		return outputFormatterProvider;
+	}
+
+	public void setOutputFormatterProvider(OutputFormatterProvider outputFormatterProvider) {
+		this.outputFormatterProvider = outputFormatterProvider;
+	}
+
+	public ScriptRuntimeRunnableWrapper getRuntimeWrapper() {
+		return runtimeWrapper;
+	}
+
+	public void setRuntimeWrapper(ScriptRuntimeRunnableWrapper runtimeWrapper) {
+		this.runtimeWrapper = runtimeWrapper;
+	}
+
+	
 }

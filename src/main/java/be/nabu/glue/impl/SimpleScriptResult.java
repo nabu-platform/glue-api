@@ -9,6 +9,7 @@ import java.util.List;
 import be.nabu.glue.api.ExecutionEnvironment;
 import be.nabu.glue.api.Script;
 import be.nabu.glue.api.runs.ScriptResult;
+import be.nabu.glue.api.runs.GlueAttachment;
 import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
@@ -19,11 +20,12 @@ public class SimpleScriptResult implements ScriptResult {
 	private Date started;
 	private String log;
 	private List<GlueValidation> validations;
+	private List<GlueAttachment> attachments;
 	private Date stopped;
 	private Exception exception;
 	private ExecutionEnvironment environment;
 
-	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, List<GlueValidation> validations) {
+	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, List<GlueValidation> validations, List<GlueAttachment> attachments) {
 		this.environment = environment;
 		this.script = script;
 		this.started = started;
@@ -31,6 +33,7 @@ public class SimpleScriptResult implements ScriptResult {
 		this.exception = exception;
 		this.log = log;
 		this.validations = validations;
+		this.attachments = attachments;
 		this.severity = exception == null ? Severity.INFO : Severity.ERROR;
 		for (GlueValidation validation : validations) {
 			switch(validation.getSeverity()) {
@@ -64,7 +67,7 @@ public class SimpleScriptResult implements ScriptResult {
 	}
 	
 	public SimpleScriptResult(ExecutionEnvironment environment, Script script, Date started, Date stopped, Exception exception, String log, GlueValidation...validations) {
-		this(environment, script, started, stopped, exception, log, Arrays.asList(validations));
+		this(environment, script, started, stopped, exception, log, Arrays.asList(validations), null);
 	}
 	
 	@Override
@@ -105,6 +108,11 @@ public class SimpleScriptResult implements ScriptResult {
 	@Override
 	public ExecutionEnvironment getEnvironment() {
 		return environment;
+	}
+
+	@Override
+	public List<GlueAttachment> getAttachments() {
+		return attachments;
 	}
 
 }

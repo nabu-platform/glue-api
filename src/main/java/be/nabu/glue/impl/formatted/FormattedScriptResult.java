@@ -15,13 +15,15 @@ import javax.xml.bind.annotation.XmlType;
 
 import be.nabu.glue.api.runs.ScriptResult;
 import be.nabu.glue.api.runs.ScriptResultInterpretation;
+import be.nabu.glue.api.runs.GlueAttachment;
 import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "result")
-@XmlType(propOrder = { "severity", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log" })
+@XmlType(propOrder = { "severity", "namespace", "name", "environment", "started", "stopped", "actualVariance", "allowedVariance", "amountValidations", "amountSuccessful", "amountError", "amountCritical", "validations", "exception", "log", "attachments" })
 public class FormattedScriptResult {
 	private List<FormattedValidation> validations;
+	private List<FormattedAttachment> attachments;
 	private Severity severity;
 	private String name, namespace, exception, log, environment;
 	private Date started, stopped;
@@ -51,6 +53,15 @@ public class FormattedScriptResult {
 		formatted.setAmountSuccessful(amountSuccessful);
 		formatted.setAmountValidations(amountCritical + amountError + amountSuccessful);
 		formatted.setValidations(validations);
+		
+		List<FormattedAttachment> attachments = new ArrayList<FormattedAttachment>();
+		if (result.getAttachments() != null) {
+			for (GlueAttachment attachment : result.getAttachments()) {
+				attachments.add(FormattedAttachment.format(attachment));
+			}
+			formatted.setAttachments(attachments);
+		}
+		
 		if (result.getException() != null) {
 			StringWriter output = new StringWriter();
 			PrintWriter printer = new PrintWriter(output);
@@ -169,5 +180,13 @@ public class FormattedScriptResult {
 
 	public void setAllowedVariance(Double allowedVariance) {
 		this.allowedVariance = allowedVariance;
+	}
+
+	public List<FormattedAttachment> getAttachments() {
+		return attachments;
+	}
+
+	public void setAttachments(List<FormattedAttachment> attachments) {
+		this.attachments = attachments;
 	}
 }

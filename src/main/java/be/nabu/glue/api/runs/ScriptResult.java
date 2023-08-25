@@ -1,5 +1,6 @@
 package be.nabu.glue.api.runs;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -48,4 +49,11 @@ public interface ScriptResult {
 	 * @return
 	 */
 	public ExecutionEnvironment getEnvironment();
+	
+	/**
+	 * The attachments that were generated during the script run
+	 */
+	public default List<GlueAttachment> getAttachments() {
+		return new ArrayList<GlueAttachment>();
+	}
 }

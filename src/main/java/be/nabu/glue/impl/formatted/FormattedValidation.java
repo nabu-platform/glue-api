@@ -12,7 +12,7 @@ import be.nabu.glue.api.runs.GlueValidation;
 import be.nabu.libs.validator.api.ValidationMessage.Severity;
 
 @XmlRootElement(name = "validation")
-@XmlType(propOrder = { "severity", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack" })
+@XmlType(propOrder = { "severity", "timestamp", "group", "validation", "message", "lineNumber", "line", "callStack", "executorId" })
 public class FormattedValidation {
 	
 	private Severity severity;
@@ -20,6 +20,7 @@ public class FormattedValidation {
 	private int lineNumber;
 	private List<String> callStack;
 	private Date timestamp;
+	private String executorId;
 	
 	public static FormattedValidation format(GlueValidation validation) {
 		FormattedValidation formatted = new FormattedValidation();
@@ -35,6 +36,7 @@ public class FormattedValidation {
 			formatted.setGroup(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("group") : null);
 			formatted.setLine(validation.getExecutor().getContext().getLine());
 			formatted.setLineNumber(validation.getExecutor().getContext().getLineNumber());
+			formatted.setExecutorId(validation.getExecutor().getContext() != null && validation.getExecutor().getContext().getAnnotations() != null ? validation.getExecutor().getContext().getAnnotations().get("id") : null);
 		}
 		formatted.setTimestamp(validation.getCreated());
 		return formatted;
@@ -103,4 +105,13 @@ public class FormattedValidation {
 	public void setGroup(String group) {
 		this.group = group;
 	}
+
+	public String getExecutorId() {
+		return executorId;
+	}
+
+	public void setExecutorId(String executorId) {
+		this.executorId = executorId;
+	}
+	
 }

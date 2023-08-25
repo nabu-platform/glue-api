@@ -61,6 +61,9 @@ public class SimpleOutputFormatter implements OutputFormatter {
 		}
 	}
 
+	// WARNING @2023-06-15: at some point I added to both printing & validating that it should push this to the parent as well
+	// but this breaks glue-based templating during resolve in for example javascript files that have embedded glue syntax
+	// the result is that the output appears twice: where it is supposed to and before (or after) as well
 	@Override
 	public void print(Object...messages) {
 		if (messages != null) {
