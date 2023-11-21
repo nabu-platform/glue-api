@@ -191,7 +191,12 @@ public class MatrixScriptRepository implements ScriptRepository {
 						else {
 							builder.append(", ");
 						}
-						builder.append("\"").append(value.trim().replaceAll("\"", "\\\"")).append("\"");
+						if (value.trim().isEmpty()) {
+							builder.append("null");
+						}
+						else {
+							builder.append("\"").append(value.trim().replaceAll("\"", "\\\"")).append("\"");
+						}
 					}
 					builder.append(")");
 					ExecutorGroup parse = newParser.parse(new StringReader(builder.toString()));
