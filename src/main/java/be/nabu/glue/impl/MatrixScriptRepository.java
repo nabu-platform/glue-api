@@ -201,7 +201,7 @@ public class MatrixScriptRepository implements ScriptRepository {
 					// write the actual script call
 					builder.append(ScriptUtils.getFullName(script)).append("(");
 					boolean first = true;
-					for (String value : line.split("[,;]+")) {
+					for (String value : line.split("[,;]{1}")) {
 						if (first) {
 							first = false;
 						}
