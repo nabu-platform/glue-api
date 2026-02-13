@@ -57,6 +57,7 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 	private long maxScriptRuntime;
 	private OutputFormatterProvider outputFormatterProvider;
 	private ScriptRuntimeRunnableWrapper runtimeWrapper;
+	private ScriptResultListener resultListener;
 
 	public MultithreadedScriptRunner(int poolSize, long maxScriptRuntime) {
 		this(poolSize, maxScriptRuntime, false);
@@ -78,15 +79,18 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		List<ScriptRuntime> runtimes = new ArrayList<ScriptRuntime>();
 		Map<Future<?>, ScriptRuntime> futures = new LinkedHashMap<Future<?>, ScriptRuntime>();
 		System.out.println("Finding scripts for execution...");
+		Map<ScriptRuntime, StringWriter> writers = new HashMap<ScriptRuntime, StringWriter>();
 		for (Script script : repository) {
 			System.out.print("\t" + script.getName() + " (" + script.getNamespace() + ")...");
 			if (filter.accept(script)) {
 				ScriptRuntime runtime = new ScriptRuntime(script, environment, debug, new HashMap<String, Object>());
+				StringWriter stringWriter = new StringWriter();
+				writers.put(runtime, stringWriter);
 				if (outputFormatterProvider == null) {
-					runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(debug ? new MultipleWriter(new OutputStreamWriter(System.out)) : new StringWriter())));
+					runtime.setFormatter(new ScriptRunnerFormatter(new MarkdownOutputFormatter(debug ? new MultipleWriter(new OutputStreamWriter(System.out), stringWriter) : stringWriter)));
 				}
 				else {
-					runtime.setFormatter(outputFormatterProvider.newFormatter(new SimpleOutputFormatter(new StringWriter())));
+					runtime.setFormatter(outputFormatterProvider.newFormatter(new SimpleOutputFormatter(stringWriter)));
 				}
 //				runtime.setFormatter(new SimpleOutputFormatter(new StringWriter()));
 				runtime.setLabelEvaluator(labelEvaluator);
@@ -114,11 +118,15 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 			Iterator<Future<?>> iterator = futures.keySet().iterator();
 			while(iterator.hasNext()) {
 				Future<?> future = iterator.next();
+				ScriptRuntime scriptRuntime = futures.get(future);
 				if (future.isDone() || future.isCancelled()) {
+					// should merge this with the handling at the end, just making minimal changes now...
+					if (resultListener != null) {
+						resultListener.handle(toResult(environment, scriptRuntime, writers.get(scriptRuntime).toString()));
+					}
 					iterator.remove();
 				}
 				else {
-					ScriptRuntime scriptRuntime = futures.get(future);
 					if (scriptRuntime.getStarted() != null) {
 						long runtime = new Date().getTime() - scriptRuntime.getStarted().getTime();
 						if (runtime > maxScriptRuntime) {
@@ -137,6 +145,12 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 					}
 				}
 			}
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		if (!futures.isEmpty()) {
 			synchronized(System.out) {
@@ -145,19 +159,25 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		}
 		List<ScriptResult> results = new ArrayList<ScriptResult>();
 		for (ScriptRuntime runtime : runtimes) {
-			List<GlueValidation> validations  = (List<GlueValidation>) runtime.getContext().get("$validation");
-			List<GlueAttachment> attachments = (List<GlueAttachment>) runtime.getContext().get("$attachment");
-//			String log = ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString();
-			String log;
-			if (outputFormatterProvider != null) {
-				log = ((SimpleOutputFormatter) runtime.getFormatter().getParent()).getWriter().toString();
-			}
-			else {
-				log = ((SimpleOutputFormatter) runtime.getFormatter()).getWriter().toString();
-			}
-			results.add(new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), log, validations == null ? new ArrayList<GlueValidation>() : validations, attachments));
+			SimpleScriptResult scriptResult = toResult(environment, runtime, writers.get(runtime).toString());
+			results.add(scriptResult);
 		}
 		return results;
+	}
+
+	@SuppressWarnings("unchecked")
+	private SimpleScriptResult toResult(ExecutionEnvironment environment, ScriptRuntime runtime, String log) {
+		List<GlueValidation> validations  = (List<GlueValidation>) runtime.getContext().get("$validation");
+		List<GlueAttachment> attachments = (List<GlueAttachment>) runtime.getContext().get("$attachment");
+//			String log = ((MarkdownOutputFormatter) ((ScriptRunnerFormatter) runtime.getFormatter()).getParent()).getWriter().toString();
+//		String log;
+//		if (outputFormatterProvider != null) {
+//			log = ((SimpleOutputFormatter) runtime.getFormatter().getParent()).getWriter().toString();
+//		}
+//		else {
+//			log = ((SimpleOutputFormatter) runtime.getFormatter()).getWriter().toString();
+//		}
+		return new SimpleScriptResult(environment, runtime.getScript(), runtime.getStarted(), runtime.getStopped(), runtime.getException(), log, validations == null ? new ArrayList<GlueValidation>() : validations, attachments);
 	}
 
 	public boolean isDebug() {
@@ -230,5 +250,12 @@ public class MultithreadedScriptRunner implements ScriptRunner {
 		this.runtimeWrapper = runtimeWrapper;
 	}
 
-	
+	public ScriptResultListener getResultListener() {
+		return resultListener;
+	}
+
+	public void setResultListener(ScriptResultListener resultListener) {
+		this.resultListener = resultListener;
+	}
+
 }
