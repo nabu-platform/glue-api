@@ -26,6 +26,9 @@ public interface OutputFormatter {
 	public void start(Script script);
 	public void before(Executor executor);
 	public void after(Executor executor);
+	public default void error(Executor executor, Exception exception) {
+		// Optional callback for formatters that track failed steps.
+	}
 	public void validated(GlueValidation...validations);
 	public void print(Object...messages);
 	public void end(Script script, Date started, Date stopped, Exception exception);

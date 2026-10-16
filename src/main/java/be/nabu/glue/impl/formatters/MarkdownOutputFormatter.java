@@ -114,6 +114,16 @@ public class MarkdownOutputFormatter extends SimpleOutputFormatter {
 	}
 
 	@Override
+	public void error(Executor executor, Exception exception) {
+		if (scriptDepth == 0 && executor instanceof ExecutorGroup && executor.getContext().getDescription() != null) {
+			depth--;
+		}
+		if (parent != null) {
+			parent.error(executor, exception);
+		}
+	}
+
+	@Override
 	public void validated(GlueValidation...validations) {
 		if (inBlock) {
 			inBlock = false;

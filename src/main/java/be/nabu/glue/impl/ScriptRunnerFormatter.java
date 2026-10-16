@@ -54,6 +54,11 @@ public class ScriptRunnerFormatter implements OutputFormatter {
 	}
 
 	@Override
+	public void error(Executor executor, Exception exception) {
+		parent.error(executor, exception);
+	}
+
+	@Override
 	public void after(Executor executor) {
 		parent.after(executor);
 	}

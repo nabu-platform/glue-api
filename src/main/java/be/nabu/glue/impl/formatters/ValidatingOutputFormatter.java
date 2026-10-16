@@ -54,6 +54,11 @@ public class ValidatingOutputFormatter implements OutputFormatter {
 	}
 
 	@Override
+	public void error(Executor executor, Exception exception) {
+		parent.error(executor, exception);
+	}
+
+	@Override
 	public void after(Executor executor) {
 		// first trigger parent, it might perform some operation that influences the value
 		parent.after(executor);
